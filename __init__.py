@@ -81,7 +81,7 @@ TextureTypeLookup = {
         "Normal", 
         "", 
         "Emission", 
-        "Bump Map", 
+        "", 
         "Base Color", 
         "", 
         "", 
@@ -89,13 +89,46 @@ TextureTypeLookup = {
     ),
     "basic": (
         "PBR", 
-        "Base Color", 
+        "Diffuse", 
         "Normal"
     ),
     "emissive": (
         "Normal/AO/Roughness", 
         "Emission", 
-        "Base Color/Metallic"
+        "Diffuse/Metallic"
+    ),
+    "original_auto": (
+        "SSS (not required)",
+        "Roughness",
+        "AO (not required)",
+        "Cavity (not required)",
+        "", 
+        "", 
+        "", 
+        "",
+        "Normal",
+        "",
+        "Emission (not required)",
+        "",
+        "Diffuse",
+        "",
+        "",
+        ""  
+    ),
+    "basic_auto": (
+        "Metallic",
+        "Roughness",
+        "AO (not required)",
+        "Diffuse",
+        "Normal"
+    ),
+    "emissive_auto": (
+        "Normal",
+        "AO (not required)",
+        "Cavity (not required)",
+        "Emission",
+        "Diffuse",
+        "Metallic"
     )
 }
 
@@ -1400,6 +1433,12 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
             PrettyPrint(f"Failed to load texture {TextureID}. This is not fatal, but does mean that the materials in Blender will have empty image texture nodes", "warn")
             pass
 
+        # default images
+        if name == "SSS (not required)" or name == "Emission (not required)":
+            texImage.image = (bpy.data.images.load(f"{__file__}\\..\\textures\\black.png"))
+        elif name == "AO (not required)" or name == "Cavity (not required)":
+            texImage.image = (bpy.data.images.load(f"{__file__}\\..\\textures\\white.png"))
+
         mat.node_tree.links.new(texImage.outputs['Color'], group.inputs[idx])
         idx +=1
 
@@ -1418,15 +1457,21 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     bsdf.location = (50, 0)
     separateColor = nodeTree.nodes.new('ShaderNodeSeparateColor')
     separateColor.location = (-150, 0)
+    # combine colors for auto channel packing
+    combineColor = nodeTree.nodes.new('ShaderNodeCombineColor')
+    combineColor.location = (-150, 50)
 
     bpy.ops.file.unpack_all(method='REMOVE')
     
     if Entry.MaterialTemplate == "basic": SetupBasicBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor)
     elif Entry.MaterialTemplate == "original": SetupOriginalBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor)
     elif Entry.MaterialTemplate == "emissive": SetupEmissiveBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor)
-    
+    elif Entry.MaterialTemplate == "basic_auto": SetupBasicAutoBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, combineColor)
+    elif Entry.MaterialTemplate == "original_auto": SetupOriginalAutoBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, combineColor)
+    elif Entry.MaterialTemplate == "emissive_auto": SetupEmissiveAutoBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, combineColor)
+
 def SetupBasicBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor):
-    nodeTree.links.new(inputNode.outputs['Base Color'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Diffuse'], bsdf.inputs['Base Color'])
     nodeTree.links.new(inputNode.outputs['Normal'], bsdf.inputs['Normal'])
     nodeTree.links.new(inputNode.outputs['PBR'], separateColor.inputs['Color'])
     nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Metallic'])
@@ -1434,7 +1479,7 @@ def SetupBasicBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateCol
     nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
 
 def SetupOriginalBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor):
-    nodeTree.links.new(inputNode.outputs['Base Color'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Diffuse'], bsdf.inputs['Base Color'])
     nodeTree.links.new(inputNode.outputs['Normal'], bsdf.inputs['Normal'])
     nodeTree.links.new(inputNode.outputs['Emission'], bsdf.inputs['Emission Color'])
     nodeTree.links.new(inputNode.outputs['PBR'], separateColor.inputs['Color'])
@@ -1447,6 +1492,78 @@ def SetupEmissiveBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separate
     nodeTree.links.new(inputNode.outputs['Emission'], bsdf.inputs['Emission Color'])
     nodeTree.links.new(inputNode.outputs['Normal/AO/Roughness'], separateColor.inputs['Color'])
     nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Normal'])
+    nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
+
+# Auto Channel Packing Materials
+# any PBR that uses the alpha channel has to be put through a Hue/Saturation/Value node 
+
+def SetupBasicAutoBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, combineColor):
+    nodeTree.links.new(inputNode.outputs['Diffuse'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Normal'], bsdf.inputs['Normal'])
+
+    # PBR
+    nodeTree.links.new(inputNode.outputs['Metallic'], combineColor.inputs['Red'])
+    nodeTree.links.new(inputNode.outputs['Roughness'], combineColor.inputs['Green'])
+    nodeTree.links.new(inputNode.outputs['AO (not required)'], combineColor.inputs['Blue'])
+    nodeTree.links.new(combineColor.outputs['Color'], separateColor.inputs['Color'])
+
+    # final separation
+    nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Metallic'])
+    nodeTree.links.new(separateColor.outputs['Green'], bsdf.inputs['Roughness'])
+    nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
+
+def SetupOriginalAutoBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, combineColor):
+    nodeTree.links.new(inputNode.outputs['Diffuse'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Normal'], bsdf.inputs['Normal'])
+    nodeTree.links.new(inputNode.outputs['Emission (not required)'], bsdf.inputs['Emission Color'])
+
+    # PBR
+    nodeTree.links.new(inputNode.outputs['SSS (not required)'], combineColor.inputs['Red'])
+    nodeTree.links.new(inputNode.outputs['Roughness'], combineColor.inputs['Green'])
+    nodeTree.links.new(inputNode.outputs['AO (not required)'], combineColor.inputs['Blue'])
+
+    # adding Alpha to PBR
+    combineColorAlpha = nodeTree.nodes.new('ShaderNodeHueSaturation')
+    combineColorAlpha.location = (-100, 50)
+    nodeTree.links.new(combineColor.outputs['Color'], combineColorAlpha.inputs['Color'])
+    nodeTree.links.new(inputNode.outputs['Cavity (not required)'], combineColorAlpha.inputs['Value']) # alpha -> value
+    nodeTree.links.new(combineColorAlpha.outputs['Color'], separateColor.inputs['Color'])
+
+    # final seperation
+    nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Metallic'])
+    nodeTree.links.new(separateColor.outputs['Green'], bsdf.inputs['Roughness'])
+    nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
+
+def SetupEmissiveAutoBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, combineColor):
+    nodeTree.links.new(inputNode.outputs['Emission (not required)'], bsdf.inputs['Emission Color'])
+
+    # Normal/AO/Cavity
+    nodeTree.links.new(inputNode.outputs['Normal'], combineColor.inputs['Red'])
+    nodeTree.links.new(inputNode.outputs['Normal'], combineColor.inputs['Green'])
+    nodeTree.links.new(inputNode.outputs['AO (not required)'], combineColor.inputs['Blue'])
+
+    # add Alpha to Normal/AO/Cavity
+    combineNormalAlpha = nodeTree.nodes.new('ShaderNodeHueSaturation')
+    combineNormalAlpha.location = (-100, 100)
+    nodeTree.links.new(combineColor.outputs['Color'], combineNormalAlpha.inputs['Color'])
+    nodeTree.links.new(inputNode.outputs['Cavity (not required)'], combineNormalAlpha.inputs['Value']) # alpha -> value
+
+    # Color(Diffuse)/Metallic
+    color_metallic = nodeTree.nodes.new('ShaderNodeCombineColor')
+    color_metallic.location = (-150, 100)
+    nodeTree.links.new(inputNode.outputs['Diffuse'], color_metallic.inputs['Red'])
+    nodeTree.links.new(inputNode.outputs['Diffuse'], color_metallic.inputs['Green'])
+    nodeTree.links.new(inputNode.outputs['Diffuse'], color_metallic.inputs['Blue'])
+
+    # add Alpha to Color(Diffuse)/Metallic
+    combineColorAlpha = nodeTree.nodes.new('ShaderNodeHueSaturation')
+    combineColorAlpha.location = (-100, 50)
+    nodeTree.links.new(color_metallic.outputs['Color'], combineColorAlpha.inputs['Color'])
+    nodeTree.links.new(inputNode.outputs['Cavity (not required)'], combineColorAlpha.inputs['Value']) # alpha -> value
+
+    # final seperation
+    nodeTree.links.new(combineColorAlpha.outputs['Color'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(combineNormalAlpha.outputs['Red'], bsdf.inputs['Normal'])
     nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
 
 def CreateGenericMaterial(ID, StingrayMat, mat):
@@ -3749,6 +3866,9 @@ class AddMaterialOperator(Operator):
         ("original", "Original", "The original template used for all mods uploaded to Nexus prior to the addon's public release, which is bloated with additional unnecessary textures. Sourced from a terminid."),
         ("basic", "Basic", "A basic material with a color, normal, and PBR map. Sourced from a trash bag prop."),
         ("emissive", "Emissive", "A basic material with a color, normal, and emission map. Sourced from a vending machine."),
+        ("original_auto", "Original (Auto Channel Packing)", "Original with automatic channel packing."),
+        ("basic_auto", "Basic (Auto Channel Packing)", "Basic with automatic channel packing."),
+        ("emissive_auto", "Emissive (Auto Channel Packing)", "Emissive with automatic channel packing."),
     )
 
     selected_material: EnumProperty(items=materials, name="Template", default=0)

@@ -2921,7 +2921,11 @@ def HasZeroVerticies(self):
     return False
 
 def MeshNotValidToSave(self):
-    return PatchesNotLoaded(self) or DuplicateIDsInScene(self) or IncorrectVertexGroupNaming(self) or ObjectHasModifiers(self) or AllTransformsApplied(self) or MaterialsNumberNames(self) or HasZeroVerticies(self)
+    return PatchesNotLoaded(self) or DuplicateIDsInScene(self) or IncorrectVertexGroupNaming(self) or ObjectHasModifiers(self) or MaterialsNumberNames(self) or HasZeroVerticies(self)
+
+def CopyToClipboard(txt):
+    cmd='echo '+txt.strip()+'|clip'
+    return subprocess.check_call(cmd, shell=True)
 
 def hex_to_decimal(hex_string):
     try:
@@ -3057,7 +3061,8 @@ class DefaultLoadArchiveOperator(Operator):
     def execute(self, context):
         path = Global_gamepath + "9ba626afa44a3aa3"
         if not os.path.exists(path):
-            self.report({'ERROR'}, "Current Filepath is Invalid. Change This in Settings")
+            self.report({'ERROR'}, "Current Filepath is Invalid. Change this in the Settings")
+            context.scene.Hd2ToolPanelSettings.MenuExpanded = True
             return{'CANCELLED'}
         Global_TocManager.LoadArchive(path, True, False)
 
@@ -3179,18 +3184,6 @@ class CreatePatchFromActiveOperator(Operator):
         
         return{'FINISHED'}
     
-    def invoke(self, context, event):
-        if Global_TocManager.ActiveArchive == None:
-            self.report({"ERROR"}, "No patch exists, please create one first")
-            return {'CANCELLED'}
-        return context.window_manager.invoke_props_dialog(self)
-    
-    def draw(self, context):
-        layout = self.layout
-        if Global_TocManager.ActiveArchive.Name != "9ba626afa44a3aa3":
-            layout.label(text="WARNING! Patch is not from Base Archive!")
-        layout.prop(self, "patch_name")
-    
 class PatchArchiveOperator(Operator):
     bl_label = "Patch Archive"
     bl_idname = "helldiver2.archive_export"
@@ -3210,9 +3203,9 @@ class PatchArchiveOperator(Operator):
         return{'FINISHED'}
 
 class RenamePatchOperator(Operator):
-    bl_label = "Rename Patch"
+    bl_label = "Rename Mod"
     bl_idname = "helldiver2.rename_patch"
-    bl_description = "Change Name of Current Active Patch"
+    bl_description = "Change Name of Current Mod Within the Tool"
 
     patch_name: StringProperty(name="Mod Name")
 
@@ -3255,9 +3248,7 @@ class ExportPatchAsZipOperator(Operator, ExportHelper):
         exportpath = filepath.replace(".zip", "")
         exportname = filepath.split(Global_backslash)[-1]
         
-        patchName = Global_TocManager.ActivePatch.LocalName
-        if patchName == "":
-            patchName = "unnamed patch"
+        patchName = Global_TocManager.ActivePatch.Name
         patchFile = Global_TocManager.ActivePatch.Name
         tempDirectory = bpy.app.tempdir + patchName
         patchPath = Global_gamepath + patchFile
@@ -3532,6 +3523,10 @@ class SaveStingrayMeshOperator(Operator):
 
     object_id: StringProperty()
     def execute(self, context):
+        mode = context.mode
+        if mode != 'OBJECT':
+            self.report({'ERROR'}, f"You are Not in OBJECT Mode. Current Mode: {mode}")
+            return {'CANCELLED'}
         if MeshNotValidToSave(self):
             return {'CANCELLED'}
         wasSaved = Global_TocManager.Save(int(self.object_id), MeshID)
@@ -4229,7 +4224,11 @@ def CustomPropertyContext(self, context):
     layout.separator()
     layout.operator("helldiver2.copy_custom_properties", icon= 'COPYDOWN')
     layout.operator("helldiver2.paste_custom_properties", icon= 'PASTEDOWN')
-    layout.operator("helldiver2.archive_mesh_batchsave", icon= 'FILE_BLEND',)
+    layout.operator("helldiver2.archive_mesh_batchsave", icon= 'FILE_BLEND')
+    if bpy.context.scene.Hd2ToolPanelSettings.EnableTools:
+        layout.separator()
+        layout.operator("helldiver2.copy_hex_id", icon='COPY_ID')
+        layout.operator("helldiver2.copy_decimal_id", icon='COPY_ID')
 
 class CopyArchiveIDOperator(Operator):
     bl_label = "Copy Archive ID"
@@ -4243,6 +4242,47 @@ class CopyArchiveIDOperator(Operator):
         bpy.context.window_manager.clipboard = archiveID
         self.report({'INFO'}, f"Copied Archive ID: {archiveID}")
 
+        return {'FINISHED'}
+    
+class CopyHexIDOperator(Operator):
+    bl_label = "Copy Hex ID"
+    bl_idname = "helldiver2.copy_hex_id"
+    bl_description = "Copy the Hexidecimal ID of the selected mesh for the Diver tool"
+
+    def execute(self, context):
+        object = context.active_object
+        try:
+            ID = int(object["Z_ObjectID"])
+        except:
+            self.report({'ERROR'}, f"Object: {object.name} has not Helldivers property ID")
+            return {'CANCELLED'}
+
+        try:
+            hexID = hex(ID)
+        except:
+            self.report({'ERROR'}, f"Object: {object.name} ID: {ID} cannot be converted to hex")
+            return {'CANCELLED'}
+        
+        CopyToClipboard(hexID)
+        self.report({'INFO'}, f"Copied {object.name}'s property of {hexID}")
+        return {'FINISHED'}
+
+class CopyDecimalIDOperator(Operator):
+    bl_label = "Copy ID"
+    bl_idname = "helldiver2.copy_decimal_id"
+    bl_description = "Copy the decimal ID of the selected mesh"
+
+    def execute(self, context):
+        
+        object = context.active_object
+        try:
+            ID = str(object["Z_ObjectID"])
+        except:
+            self.report({'ERROR'}, f"Object: {object.name} has not Helldivers property ID")
+            return {'CANCELLED'}
+        
+        CopyToClipboard(ID)
+        self.report({'INFO'}, f"Copied {object.name}'s property of {ID}")
         return {'FINISHED'}
 
 class EntrySectionOperator(Operator):
@@ -4284,7 +4324,7 @@ def LoadedArchives_callback(scene, context):
     return [(Archive.Name, GetArchiveNameFromID(Archive.Name) if GetArchiveNameFromID(Archive.Name) != "" else Archive.Name, Archive.Name) for Archive in Global_TocManager.LoadedArchives]
 
 def Patches_callback(scene, context):
-    return [(Archive.Name, Archive.LocalName if Archive.LocalName != "" else "unnamed patch", Archive.Name) for Archive in Global_TocManager.Patches]
+    return [(Archive.Name, Archive.Name, Archive.Name) for Archive in Global_TocManager.Patches]
 
 class Hd2ToolPanelSettings(PropertyGroup):
     # Patches
@@ -4391,35 +4431,35 @@ class HellDivers2ToolsPanel(Panel):
             return
 
         # Draw Settings, Documentation and Spreadsheet
+        mainbox = layout.box()
+        row = mainbox.row()
         row.prop(scene.Hd2ToolPanelSettings, "MenuExpanded",
             icon="DOWNARROW_HLT" if scene.Hd2ToolPanelSettings.MenuExpanded else "RIGHTARROW",
             icon_only=True, emboss=False, text="Settings")
-        row = layout.row()
-        row.operator("helldiver2.help", icon='HELP', text="Documentation")
-        row.operator("helldiver2.archive_spreadsheet", icon='INFO', text="Archive IDs")
-        row.operator("helldiver2.github", icon='URL', text= "")
+        row.label(icon="SETTINGS")
         
         if scene.Hd2ToolPanelSettings.MenuExpanded:
-            row = layout.row(); row.separator(); row.label(text="Display Types"); box = row.box(); row = box.grid_flow(columns=1)
+            row = mainbox.grid_flow(columns=2)
+            row = mainbox.row(); row.separator(); row.label(text="Display Types"); box = row.box(); row = box.grid_flow(columns=1)
             row.prop(scene.Hd2ToolPanelSettings, "ShowExtras")
             row.prop(scene.Hd2ToolPanelSettings, "ShowOthers")
-            row = layout.row(); row.separator(); row.label(text="Import Options"); box = row.box(); row = box.grid_flow(columns=1)
+            row = mainbox.row(); row.separator(); row.label(text="Import Options"); box = row.box(); row = box.grid_flow(columns=1)
             row.prop(scene.Hd2ToolPanelSettings, "ImportMaterials")
             row.prop(scene.Hd2ToolPanelSettings, "ImportLods")
             row.prop(scene.Hd2ToolPanelSettings, "ImportGroup0")
             row.prop(scene.Hd2ToolPanelSettings, "MakeCollections")
             row.prop(scene.Hd2ToolPanelSettings, "ImportPhysics")
             row.prop(scene.Hd2ToolPanelSettings, "ImportStatic")
-            row = layout.row(); row.separator(); row.label(text="Export Options"); box = row.box(); row = box.grid_flow(columns=1)
+            row = mainbox.row(); row.separator(); row.label(text="Export Options"); box = row.box(); row = box.grid_flow(columns=1)
             row.prop(scene.Hd2ToolPanelSettings, "Force2UVs")
             row.prop(scene.Hd2ToolPanelSettings, "Force1Group")
             row.prop(scene.Hd2ToolPanelSettings, "AutoLods")
             #Custom Searching tools
-            row = layout.row(); row.separator(); row.label(text="Research Tools"); box = row.box(); row = box.grid_flow(columns=1)
+            row = mainbox.row(); row.separator(); row.label(text="Research Tools"); box = row.box(); row = box.grid_flow(columns=1)
             # Draw Bulk Loader Extras
             row.prop(scene.Hd2ToolPanelSettings, "EnableTools")
             if scene.Hd2ToolPanelSettings.EnableTools:
-                row = layout.row(); box = row.box(); row = box.grid_flow(columns=1)
+                row = mainbox.row(); box = row.box(); row = box.grid_flow(columns=1)
                 #row.label()
                 row.label(text="WARNING! Developer Tools, Please Know What You Are Doing!")
                 row.prop(scene.Hd2ToolPanelSettings, "UnloadEmptyArchives")
@@ -4429,16 +4469,20 @@ class HellDivers2ToolsPanel(Panel):
                 col = box.grid_flow(columns=2)
                 col.operator("helldiver2.bulk_load", icon= 'IMPORT', text="Bulk Load")
                 col.operator("helldiver2.search_by_entry", icon= 'VIEWZOOM')
-                search = layout.row()
+                search = mainbox.row()
                 search.label(text=Global_searchpath)
                 search.operator("helldiver2.change_searchpath", icon='FILEBROWSER')
-                layout.separator()
-            row = layout.row()
+                mainbox.separator()
+            row = mainbox.row()
             row.label(text=Global_gamepath)
             row.operator("helldiver2.change_filepath", icon='FILEBROWSER')
-            layout.separator()
+            mainbox.separator()
 
         # Draw Archive Import/Export Buttons
+        row = layout.row(); row = layout.row()
+        row.operator("helldiver2.help", icon='HELP', text="Documentation")
+        row.operator("helldiver2.archive_spreadsheet", icon='INFO', text="Archive IDs")
+        row.operator("helldiver2.github", icon='URL', text= "")
         row = layout.row(); row = layout.row()
         row.operator("helldiver2.archive_import_default", icon= 'SOLO_ON', text="")
         row.operator("helldiver2.search_archives", icon= 'VIEWZOOM')
@@ -4483,9 +4527,7 @@ class HellDivers2ToolsPanel(Panel):
             name = GetArchiveNameFromID(ArchiveID)
             title = f"{name}    ID: {ArchiveID}"
         if Global_TocManager.ActivePatch != None and scene.Hd2ToolPanelSettings.PatchOnly:
-            name = Global_TocManager.ActivePatch.LocalName
-            if name == "":
-                name = "unnamed patch"
+            name = Global_TocManager.ActivePatch.Name
             title = f"Patch: {name}    File: {Global_TocManager.ActivePatch.Name}"
         row.prop(scene.Hd2ToolPanelSettings, "ContentsExpanded",
             icon="DOWNARROW_HLT" if scene.Hd2ToolPanelSettings.ContentsExpanded else "RIGHTARROW",
@@ -4820,6 +4862,8 @@ classes = (
     ChangeSearchpathOperator,
     ExportTexturePNGOperator,
     BatchExportTexturePNGOperator,
+    CopyDecimalIDOperator,
+    CopyHexIDOperator,
 )
 
 Global_TocManager = TocManager()

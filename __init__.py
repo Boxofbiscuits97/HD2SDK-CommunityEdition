@@ -117,9 +117,8 @@ TextureTypeLookup = {
 
 def CheckBlenderVersion():
     global OnCorrectBlenderVersion
-    BlenderVersion = bpy.app.version_string
-    version = BlenderVersion.split(".")
-    OnCorrectBlenderVersion = (version[0] == "4" and version[1] == "0")
+    BlenderVersion = bpy.app.version
+    OnCorrectBlenderVersion = (BlenderVersion[0] == 4 and BlenderVersion[1] == 0)
     PrettyPrint(f"Blender Version: {BlenderVersion} Correct Version: {OnCorrectBlenderVersion}")
 
 def PrettyPrint(msg, type="info"): # Inspired by FortnitePorting

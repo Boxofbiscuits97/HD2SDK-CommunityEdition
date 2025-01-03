@@ -115,11 +115,11 @@ TextureTypeLookup = {
 
 #region Functions: Miscellaneous
 
+# 4.3 compatibility change
 def CheckBlenderVersion():
     global OnCorrectBlenderVersion
-    BlenderVersion = bpy.app.version_string
-    version = BlenderVersion.split(".")
-    OnCorrectBlenderVersion = (version[0] == "4" and version[1] == "0")
+    BlenderVersion = bpy.app.version
+    OnCorrectBlenderVersion = (BlenderVersion[0] == 4 and 3 >= BlenderVersion[1] >= 0)
     PrettyPrint(f"Blender Version: {BlenderVersion} Correct Version: {OnCorrectBlenderVersion}")
 
 def PrettyPrint(msg, type="info"): # Inspired by FortnitePorting
@@ -308,7 +308,12 @@ def GetMeshData(og_object):
 
     # get normals, tangents, bitangents
     #mesh.calc_tangents()
-    mesh.calc_normals_split()
+    # 4.3 compatibility change
+    if bpy.app.version[0]>=4 and bpy.app.version[1]<1:
+        if not mesh.has_custom_normals:
+            mesh.create_normals_split()
+        mesh.calc_normals_split()
+        
     for loop in mesh.loops:
         normals[loop.vertex_index]    = loop.normal.normalized()
         #tangents[loop.vertex_index]   = loop.tangent.normalized()
@@ -483,7 +488,12 @@ def CreateModel(model, id, customization_info, bone_names):
         new_collection.objects.link(new_object)
         # -- || ASSIGN NORMALS || -- #
         if len(mesh.VertexNormals) == len(mesh.VertexPositions):
-            new_mesh.use_auto_smooth = True
+            # 4.3 compatibility change
+            if bpy.app.version[0]>=4 and bpy.app.version[1]>=1:
+                new_mesh.shade_smooth()
+            else:
+                new_mesh.use_auto_smooth = True
+            
             new_mesh.polygons.foreach_set('use_smooth',  [True] * len(new_mesh.polygons))
             if not isinstance(mesh.VertexNormals[0], int):
                 new_mesh.normals_split_custom_set_from_vertices(mesh.VertexNormals)

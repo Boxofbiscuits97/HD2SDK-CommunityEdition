@@ -1,0 +1,4 @@
+3a49b4448eaa94fe LAS-5 Scythe
+6db0c562c2bc10b3 LAS-16 Sickle
+c51f160470b34ae3 PLAS-1 Scorcher & PLAS-101 Purifier
+55938279f6ef8664 ARC-12 Blitzer

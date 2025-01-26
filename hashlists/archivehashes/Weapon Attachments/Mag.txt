@@ -1,0 +1,10 @@
+c97c859c01d50fcf SMG-37 Defender
+4911594c67c24c66 R-63 Diligence 20-round
+ab37d0554198acc8 JAR-5 Dominator
+9b856579552160e5 MP-98 Knight
+272519d2e9bf5324 AR-23 Liberator Drum
+7d678bb75cfb937b AR-23 Liberator 45-Round Ranger
+7b523d4ef1c8f4ee PLAS-15 Loyalist Extended
+515ddabd01bd0c64 PLAS-15 Loyalist Standard 
+3b2c86dd5b316eb2 P-2 Peacemaker
+b15cd2256a2e677b P-19 Redeemer

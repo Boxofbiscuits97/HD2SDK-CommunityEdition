@@ -1,0 +1,5 @@
+0601a2f91ec178a9 MP-98 Knight
+0e6452d74d3a9dd3 SMG-37 Defender
+f230d2d2adcc034a SMG-72 Pummeler & SMG-37 Defender
+0edad8ddec238bd9 SMG-32 Reprimand
+5193b8a6d77f5a0a StA-11 SMG

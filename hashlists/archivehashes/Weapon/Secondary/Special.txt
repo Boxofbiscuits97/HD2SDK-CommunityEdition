@@ -1,0 +1,6 @@
+9effc1c882578baf PLAS-15 Loyalist
+2350348a9acf49c4 SG-22 Bushwhacker
+b29a2fa06fdd99d2 GP-31 Grenade Pistol
+41ce78fe8f96bebe P-72 Crisper
+82dcd83d81a385f3 LAS-7 Dagger
+2844da91583db0f4 P-11 Stim Pistol

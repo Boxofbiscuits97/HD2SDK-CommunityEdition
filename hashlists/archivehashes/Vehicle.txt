@@ -1,3 +1,4 @@
 0bdf199f7ac14f43 Fast Recon Vehicle (FRV)
 22749a294788af66 EXO-45 Patriot Exosuit
 e72d3e9b05c3db0b EXO-49 Emancipator Exosuit
+9aac8a3a538ce3b7 Pelican-1

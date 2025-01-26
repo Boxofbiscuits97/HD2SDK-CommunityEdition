@@ -1,0 +1,16 @@
+530bb611a14b6ce3 FAF-14 Spear
+6ad7cc21015a5f85 AC-8 Autocannon
+ea6967f8565a2d76 APW-1 Anti-Materiel Rifle
+6ca87637eaeb5923 GR-8 Recoilless Rifle
+784671f2b3a4da79 FLAM-40 Flamethrower
+7f37db9b767844c2 RS-422 Railgun
+8f295b4d04c3a06c M-105 Stalwart
+cf1acde501ccfa1b LAS-98 Laser Cannon & LAS-99 Quasar Cannon
+de96cd7cc69628bc EAT-17 Expendable Anti-Tank
+c024a2e8ae639757 MG-43 Machine Gun
+0089bbe3e284fcaa GL-21 Grenade Launcher
+f7646e79610c124d RL-77 Airburst Rocket Launcher
+c0052e5b38e18c33 MLS-4X Commando
+2a9fb8f5d0576eae ARC-3 Arc Thrower
+902c54afb4ed396f MG-206 Heavy Machine Gun
+5795e99a988d10b7 StA-X3 W.A.S.P. Launcher

@@ -1,0 +1,6 @@
+a14f1a98c80575af AR-23 Liberator
+dbd9381f9ea9788f AR-23P Liberator Penetrator, AR-23C Liberator Concussive
+c46cf24278594a7d AR-23A Liberator Carbine
+d1968909ea085527 AR-61 Tenderizer
+a66d7cf238070ca7 BR-14 Adjudicator
+40f2a2ce5c20418f StA-52 Assault Rifle

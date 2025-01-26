@@ -1,0 +1,7 @@
+bd90b4fccb70622c G-3 Smoke
+25a04f6d9707d2cc G-4 Gas
+5df489abbe211839 G-10 Incendiary
+b2d139f78a2e2120 G-13 Incendiary Impact
+21e90918df69eff7 G-16 Impact
+543ff1ff0bd82b44 G-23 Stun
+dfb81f9917285965 G-123 Thermite

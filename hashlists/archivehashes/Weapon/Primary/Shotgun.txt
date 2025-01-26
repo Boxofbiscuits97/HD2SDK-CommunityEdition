@@ -1,0 +1,6 @@
+c5a05d09369d0670 SG-225 Breaker, SG-225SP Breaker Spray & Pray
+e566e3aaf90db459 SG-8 Punisher, SG-8S Slugger, SG-8P Punisher Plasma
+2fe755e42b659f64 SG-225IE Breaker Incendiary
+7af5df78217fd645 SG-451 Cookout
+522be23400cc6086 SG-20 Halt
+31894c33c4ed1e2a Double Barrel Shotgun

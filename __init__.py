@@ -153,37 +153,47 @@ def CheckBlenderVersion():
 def CheckAddonUpToDate():
     PrettyPrint("Checking If Addon is up to date...")
     currentVersion = bl_info["version"]
+    try:
+        req = requests.get(Global_latestVersionLink)
+        req.raise_for_status()  # Check if the request is successful.
+        if req.status_code == requests.codes.ok:
+            req = req.json()
+            latestVersion = req['tag_name'].replace("v", "")
+            latestVersion = (int(latestVersion.split(".")[0]), int(latestVersion.split(".")[1]), int(latestVersion.split(".")[2]))
+            
+            PrettyPrint(f"Current Version: {currentVersion}")
+            PrettyPrint(f"Latest Version: {latestVersion}")
 
-    req = requests.get(Global_latestVersionLink)
-    if req.status_code == requests.codes.ok:
-        req = req.json()
-        latestVersion = req['tag_name'].replace("v", "")
-        latestVersion = (int(latestVersion.split(".")[0]), int(latestVersion.split(".")[1]), int(latestVersion.split(".")[2]))
-        
-        PrettyPrint(f"Current Version: {currentVersion}")
-        PrettyPrint(f"Latest Version: {latestVersion}")
+            global Global_addonUpToDate
+            global Global_latestAddonVersion
+            Global_addonUpToDate = latestVersion == currentVersion
+            Global_latestAddonVersion = f"{latestVersion[0]}.{latestVersion[1]}.{latestVersion[2]}"
 
-        global Global_addonUpToDate
-        global Global_latestAddonVersion
-        Global_addonUpToDate = latestVersion == currentVersion
-        Global_latestAddonVersion = f"{latestVersion[0]}.{latestVersion[1]}.{latestVersion[2]}"
-
-        if Global_addonUpToDate:
-            PrettyPrint("Addon is up to date!")
+            if Global_addonUpToDate:
+                PrettyPrint("Addon is up to date!")
+            else:
+                PrettyPrint("Addon is outdated!")
         else:
-            PrettyPrint("Addon is outdated!")
-    else:
-        PrettyPrint(f"Request Failed, Cannot check latest Version. Status: {req.status_code}", "warn")
-
+            PrettyPrint(f"Request Failed, Cannot check latest Version. Status: {req.status_code}", "warn")
+    except requests.ConnectionError:
+        PrettyPrint("Connection failed. Please check your network settings.", "warn")
+    except requests.HTTPError as err:
+        PrettyPrint(f"HTTP error occurred: {err}", "warn")
+        
 def UpdateArchiveHashes():
-    req = requests.get(Global_archieHashLink)
-    if req.status_code == requests.codes.ok:
-        file = open(Global_archivehashpath, "w")
-        file.write(req.text)
-        PrettyPrint(f"Updated Archive Hashes File")
-    else:
-        PrettyPrint(f"Request Failed, Could not update Archive Hashes File", "warn")
-
+    try:
+        req = requests.get(Global_archieHashLink)
+        req.raise_for_status()  # Check if the request is successful.
+        if req.status_code == requests.codes.ok:
+            file = open(Global_archivehashpath, "w")
+            file.write(req.text)
+            PrettyPrint(f"Updated Archive Hashes File")
+        else:
+            PrettyPrint(f"Request Failed, Could not update Archive Hashes File", "warn")
+    except requests.ConnectionError:
+        PrettyPrint("Connection failed. Please check your network settings.", "warn")
+    except requests.HTTPError as err:
+        PrettyPrint(f"HTTP error occurred: {err}", "warn")
 
 def PrettyPrint(msg, type="info"): # Inspired by FortnitePorting
     reset = u"\u001b[0m"

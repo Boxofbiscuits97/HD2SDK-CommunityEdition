@@ -511,9 +511,11 @@ def GetMeshData(og_object):
 def GetObjectsMeshData():
     objects = bpy.context.selected_objects
     bpy.ops.object.select_all(action='DESELECT')
-    data = []
+    data = {}
     for object in objects:
-        data.append(GetMeshData(object))
+        ID = object["Z_ObjectID"]
+        data[ID] = GetMeshData(object)
+        #data.append(GetMeshData(object))
     return data
 
 def NameFromMesh(mesh, id, customization_info, bone_names, use_sufix=True):
@@ -905,6 +907,7 @@ def UpdateConfig():
 #region Classes and Functions: Stingray Archives
 
 class TocEntry:
+
     def __init__(self):
         self.FileID = self.TypeID = self.TocDataOffset = self.Unknown1 = self.GpuResourceOffset = self.Unknown2 = self.TocDataSize = self.GpuResourceSize = self.EntryIndex = self.StreamSize = self.StreamOffset = 0
         self.Unknown3 = 16
@@ -1029,8 +1032,9 @@ class TocEntry:
                             PrettyPrint(self.Transforms)
                     except:
                         PrettyPrint(f"Object: {object.name} has No HD2 Properties")
+
     # -- Write Data -- #
-    def Save(self):
+    def Save(self, **kwargs):
         if not self.IsLoaded: self.Load(True, False)
         if self.TypeID == MeshID: callback = SaveStingrayMesh
         if self.TypeID == TexID: callback = SaveStingrayTexture
@@ -1039,8 +1043,13 @@ class TocEntry:
         if callback == None: callback = SaveStingrayDump
 
         if self.IsLoaded:
-            data = callback(self, self.FileID, self.TocData, self.GpuData, self.StreamData, self.LoadedData)
+            if self.TypeID == MeshID:
+                BlenderOpts = kwargs.get("BlenderOpts")
+                data = callback(self, self.FileID, self.TocData, self.GpuData, self.StreamData, self.LoadedData, BlenderOpts)
+            else:
+                data = callback(self, self.FileID, self.TocData, self.GpuData, self.StreamData, self.LoadedData)
             self.SetData(data[0], data[1], data[2])
+        return True
 
 class TocFileType:
     def __init__(self, ID=0, NumFiles=0):
@@ -1251,6 +1260,8 @@ class TocManager():
                         PrettyPrint(f"Creating Material: {entry.FileID} Template: {entry.MaterialTemplate}")
                     else:
                         PrettyPrint(f"Material: {entry.FileID} Parent ID: {ID} is not an custom material, skipping.")
+        else:
+            self.LoadedArchives.append(toc)
 
         # Get search archives
         if len(self.SearchArchives) == 0:
@@ -2885,7 +2896,7 @@ class StingrayMeshFile:
         self.TransformInfo     = TransformInfo()
         self.BoneNames = None
     # -- Serialize Mesh -- #
-    def Serialize(self, f: MemoryStream, gpu, redo_offsets = False):
+    def Serialize(self, f: MemoryStream, gpu, redo_offsets = False, BlenderOpts=None):
         PrettyPrint("Serialize")
         if f.IsWriting() and not redo_offsets:
             # duplicate bone info sections if needed
@@ -3104,7 +3115,7 @@ class StingrayMeshFile:
             return self
 
         # Serialize Data
-        self.SerializeGpuData(gpu);
+        self.SerializeGpuData(gpu, BlenderOpts);
 
         # TODO: update offsets only instead of re-writing entire file
         if f.IsWriting() and not redo_offsets:
@@ -3112,7 +3123,7 @@ class StingrayMeshFile:
             self.Serialize(f, gpu, True)
         return self
 
-    def SerializeGpuData(self, gpu: MemoryStream):
+    def SerializeGpuData(self, gpu: MemoryStream, BlenderOpts=None):
         PrettyPrint("SerializeGpuData")
         # Init Raw Meshes If Reading
         if gpu.IsReading():
@@ -3121,7 +3132,7 @@ class StingrayMeshFile:
         OrderedMeshes = self.CreateOrderedMeshList()
         # Create Vertex Components If Writing
         if gpu.IsWriting():
-            self.SetupRawMeshComponents(OrderedMeshes)
+            self.SetupRawMeshComponents(OrderedMeshes, BlenderOpts)
 
         # Serialize Gpu Data
         for stream_idx in range(len(OrderedMeshes)):
@@ -3299,7 +3310,7 @@ class StingrayMeshFile:
         Mesh_Info = self.MeshInfoArray[self.DEV_MeshInfoMap[mesh.MeshInfoIndex]]
         mesh.ReInitVerts(Mesh_Info.GetNumVertices())
 
-    def SetupRawMeshComponents(self, OrderedMeshes):
+    def SetupRawMeshComponents(self, OrderedMeshes, BlenderOpts=None):
         for stream_idx in range(len(OrderedMeshes)):
             Stream_Info = self.StreamInfoArray[stream_idx]
 
@@ -3319,10 +3330,11 @@ class StingrayMeshFile:
                 if len(mesh.VertexBoneIndices)> 0: IsSkinned     = True
                 if len(mesh.VertexUVs)   > NumUVs: NumUVs = len(mesh.VertexUVs)
                 if len(mesh.VertexBoneIndices) > NumBoneIndices: NumBoneIndices = len(mesh.VertexBoneIndices)
-            if NumUVs < 2 and bpy.context.scene.Hd2ToolPanelSettings.Force2UVs:
-                NumUVs = 2
-            if IsSkinned and NumBoneIndices > 1 and bpy.context.scene.Hd2ToolPanelSettings.Force1Group:
-                NumBoneIndices = 1
+            if BlenderOpts:    
+                if BlenderOpts.get("Force2UVs"):
+                    NumUVs = 2
+                if IsSkinned and NumBoneIndices > 1 and BlenderOpts.get("Force1Group"):
+                    NumBoneIndices = 1
 
             for mesh in OrderedMeshes[stream_idx][0]: # fill default values for meshes which are missing some components
                 if not len(mesh.VertexPositions)  > 0:
@@ -3367,26 +3379,20 @@ def LoadStingrayMesh(ID, TocData, GpuData, StreamData, Reload, MakeBlendObject):
     if MakeBlendObject: CreateModel(StingrayMesh.RawMeshes, str(ID), StingrayMesh.CustomizationInfo, StingrayMesh.BoneNames, StingrayMesh.TransformInfo, StingrayMesh.BoneInfoArray)
     return StingrayMesh
 
-def SaveStingrayMesh(self, ID, TocData, GpuData, StreamData, StingrayMesh):
-    model = GetObjectsMeshData()
-    FinalMeshes = [mesh for mesh in StingrayMesh.RawMeshes]
-    for mesh in model:
-        for n in range(len(StingrayMesh.RawMeshes)):
-            if StingrayMesh.RawMeshes[n].MeshInfoIndex == mesh.MeshInfoIndex:
-                FinalMeshes[n] = mesh
-    if bpy.context.scene.Hd2ToolPanelSettings.AutoLods:
+def SaveStingrayMesh(self, ID, TocData, GpuData, StreamData, StingrayMesh, BlenderOpts=None):
+    if BlenderOpts and BlenderOpts.get("AutoLods"):
         lod0 = None
-        for mesh in FinalMeshes:
+        for mesh in StingrayMesh.RawMeshes:
             if mesh.LodIndex == 0:
                 lod0 = mesh
+                break
         # print(lod0)
         if lod0 != None:
-            for n in range(len(FinalMeshes)):
-                if FinalMeshes[n].IsLod():
+            for n in range(len(StingrayMesh.RawMeshes)):
+                if StingrayMesh.RawMeshes[n].IsLod():
                     newmesh = copy.copy(lod0)
-                    newmesh.MeshInfoIndex = FinalMeshes[n].MeshInfoIndex
-                    FinalMeshes[n] = newmesh
-    StingrayMesh.RawMeshes = FinalMeshes
+                    newmesh.MeshInfoIndex = StingrayMesh.RawMeshes[n].MeshInfoIndex
+                    StingrayMesh.RawMeshes[n] = newmesh
     toc  = MemoryStream(IOMode = "write")
     gpu  = MemoryStream(IOMode = "write")
     StingrayMesh.Serialize(toc, gpu)
@@ -4254,7 +4260,20 @@ class SaveStingrayMeshOperator(Operator):
             return {'CANCELLED'}
         if MeshNotValidToSave(self):
             return {'CANCELLED'}
-        wasSaved = Global_TocManager.Save(int(self.object_id), MeshID)
+        try:
+            ID = bpy.context.selected_objects[0]["Z_ObjectID"]
+        except:
+            self.report({'ERROR'}, f"{bpy.context.selected_objects[0].name} has no HD2 custom properties")
+            return{'CANCELLED'}
+        model = GetObjectsMeshData()
+        BlenderOpts = bpy.context.scene.Hd2ToolPanelSettings.get_settings_dict()
+        Entry = Global_TocManager.GetEntry(int(ID), MeshID)
+        m = model[ID]
+        for n in range(len(Entry.LoadedData.RawMeshes)):
+            if Entry.LoadedData.RawMeshes[n].MeshInfoIndex == m.MeshInfoIndex:
+                Entry.LoadedData.RawMeshes[n] = m
+                break
+        wasSaved = Entry.Save(BlenderOpts=BlenderOpts)
         if not wasSaved:
                 for object in bpy.data.objects:
                     try:
@@ -4274,13 +4293,14 @@ class BatchSaveStingrayMeshOperator(Operator):
     bl_options = {'REGISTER', 'UNDO'} 
 
     def execute(self, context):
+        start = time.time()
         if MeshNotValidToSave(self):
             return{'CANCELLED'}
 
         objects = bpy.context.selected_objects
         if len(objects) == 0:
             self.report({'WARNING'}, "No Objects Selected")
-        bpy.ops.object.select_all(action='DESELECT')
+        #bpy.ops.object.select_all(action='DESELECT')
         IDs = []
         for object in objects:
             try:
@@ -4290,13 +4310,16 @@ class BatchSaveStingrayMeshOperator(Operator):
             except:
                 self.report({'ERROR'}, f"{object.name} has no HD2 custom properties")
                 return{'CANCELLED'}
+        MeshData = GetObjectsMeshData()
+        BlenderOpts = bpy.context.scene.Hd2ToolPanelSettings.get_settings_dict()
         for ID in IDs:
-            for object in objects:
-                try:
-                    if object["Z_ObjectID"] == ID:
-                       object.select_set(True)
-                except: pass
-            wasSaved = Global_TocManager.Save(int(ID), MeshID)
+            Entry = Global_TocManager.GetEntry(int(ID), MeshID)
+            BlenderMesh = MeshData[ID]
+            for n in range(len(Entry.LoadedData.RawMeshes)):
+                if Entry.LoadedData.RawMeshes[n].MeshInfoIndex == BlenderMesh.MeshInfoIndex:
+                    Entry.LoadedData.RawMeshes[n] = BlenderMesh
+                    break
+            wasSaved = Entry.Save(BlenderOpts=BlenderOpts)
             if not wasSaved:
                 for object in bpy.data.objects:
                     try:
@@ -4307,8 +4330,10 @@ class BatchSaveStingrayMeshOperator(Operator):
                         PrettyPrint(f"Couldn't find Object: {object.name} at ID: {ID}")
                 self.report({'ERROR'}, f"Archive for entry being saved is not loaded. Could not find custom property object at ID: {ID}")
                 return{'CANCELLED'}
+        print("Saving mesh materials")
         SaveMeshMaterials(objects)
         self.report({'INFO'}, f"Saved {len(objects)} Meshes")
+        PrettyPrint(f"Time to save meshes: {time.time()-start}")
         return{'FINISHED'}
 
 def SaveMeshMaterials(objects):
@@ -5373,6 +5398,15 @@ class Hd2ToolPanelSettings(PropertyGroup):
     SaveNonSDKMaterials   : BoolProperty(name="Save Non-SDK Materials", description="Toggle if non-SDK materials should be autosaved when saving a mesh", default = False)
     PatchBaseArchiveOnly  : BoolProperty(name="Patch Base Archive Only", description="When enabled, it will allow patched to only be created if the base archive is selected. This is helpful for new users.", default = True)
     LegacyWeightNames     : BoolProperty(name="Legacy Weight Names", description="Brings back the old naming system for vertex groups using the X_Y schema", default = True)
+    
+    def get_settings_dict(self):
+        dict = {}
+        dict["MenuExpanded"] = self.MenuExpanded
+        dict["ShowExtras"] = self.ShowExtras
+        dict["Force2UVs"] = self.Force2UVs
+        dict["Force1Group"] = self.Force1Group
+        dict["AutoLods"] = self.AutoLods
+        return dict
 
 class HellDivers2ToolsPanel(Panel):
     bl_label = f"Helldivers 2 SDK: Community Edition v{bl_info['version'][0]}.{bl_info['version'][1]}.{bl_info['version'][2]}"
@@ -5529,7 +5563,7 @@ class HellDivers2ToolsPanel(Panel):
                 col.operator("helldiver2.bulk_load", icon= 'IMPORT', text="Bulk Load")
                 col.operator("helldiver2.search_by_entry", icon= 'VIEWZOOM')
                 #row = box.grid_flow(columns=1)
-                #row.operator("helldiver2.meshfixtool", icon='MODIFIER')
+                row.operator("helldiver2.meshfixtool", icon='MODIFIER')
                 search = mainbox.row()
                 search.label(text=Global_searchpath)
                 search.operator("helldiver2.change_searchpath", icon='FILEBROWSER')

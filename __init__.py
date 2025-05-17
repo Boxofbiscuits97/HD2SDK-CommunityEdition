@@ -3414,7 +3414,7 @@ def SaveStingrayMesh(self, ID, TocData, GpuData, StreamData, StingrayMesh, Blend
                     StingrayMesh.RawMeshes[n] = newmesh
     toc  = MemoryStream(IOMode = "write")
     gpu  = MemoryStream(IOMode = "write")
-    StingrayMesh.Serialize(toc, gpu)
+    StingrayMesh.Serialize(toc, gpu, BlenderOpts=BlenderOpts)
     return [toc.Data, gpu.Data, b""]
 
 #endregion
@@ -4294,11 +4294,8 @@ class SaveStingrayMeshOperator(Operator):
             Entry.LoadedData.RawMeshes[mesh_index] = mesh
         wasSaved = Entry.Save(BlenderOpts=BlenderOpts)
         if wasSaved:
-            try:
-                Global_TocManager.AddEntryToPatch(int(ID), MeshID)
-            except:
-                Global_TocManager.RemoveEntryFromPatch(int(ID), MeshID)
-                Global_TocManager.AddEntryToPatch(int(ID), MeshID)
+            if not Global_TocManager.IsInPatch(Entry):
+                Entry = self.AddEntryToPatch(FileID, TypeID)
         else:
                 for object in bpy.data.objects:
                     try:
@@ -4345,11 +4342,8 @@ class BatchSaveStingrayMeshOperator(Operator):
                 Entry.LoadedData.RawMeshes[mesh_index] = mesh
             wasSaved = Entry.Save(BlenderOpts=BlenderOpts)
             if wasSaved:
-                try:
-                    Global_TocManager.AddEntryToPatch(int(ID), MeshID)
-                except:
-                    Global_TocManager.RemoveEntryFromPatch(int(ID), MeshID)
-                    Global_TocManager.AddEntryToPatch(int(ID), MeshID)
+                if not Global_TocManager.IsInPatch(Entry):
+                    Entry = self.AddEntryToPatch(FileID, TypeID)
             else:
                 for object in bpy.data.objects:
                     try:

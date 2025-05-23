@@ -4359,7 +4359,7 @@ class SaveStingrayMeshOperator(Operator):
 
         # preliminary checks on the blender objects
         if not CheckMeshesValid(self, objects):
-            self.report({"ERROR"}, "Errors found in meshes, save operation canceled. Click for details.")
+            self.report({"WARNING"}, "Errors found in meshes, save operation canceled. Click for details.")
             return {"CANCELLED"}
 
         entries = {}
@@ -4405,7 +4405,7 @@ class SaveStingrayMeshOperator(Operator):
                     errors = True
 
         if errors:
-            self.report({"ERROR"}, "Errors found in meshes, save operation canceled. Click for details.")
+            self.report({"WARNING"}, "Errors found in meshes, save operation canceled. Click for details.")
             return {"CANCELLED"}
 
         # save meshes

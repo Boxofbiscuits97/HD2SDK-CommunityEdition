@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Helldivers 2 SDK: Community Edition",
-    "version": (2, 8, 6),
+    "version": (2, 8, 8),
     "blender": (4, 0, 0),
     "category": "Import-Export",
 }
@@ -511,10 +511,11 @@ def GetMeshData(og_object):
         PrettyPrint(f"Current object: {object}")
     return NewMesh
 
-def GetObjectsMeshData(blender_objects):
+def GetObjectsMeshData():
+    objects = bpy.context.selected_objects
     bpy.ops.object.select_all(action='DESELECT')
     data = {}
-    for object in blender_objects:
+    for object in objects:
         ID = object["Z_ObjectID"]
         MeshData = GetMeshData(object)
         try:
@@ -1030,11 +1031,9 @@ class TocFileType:
 
 class SearchToc:
     def __init__(self):
-        self.magic = self.numTypes = self.numFiles = 0
         self.TocEntries = {}
         self.Path = ""
         self.Name = ""
-        self.LocalName = ""
 
     def HasEntry(self, file_id, type_id):
         file_id = int(file_id)
@@ -1047,17 +1046,17 @@ class SearchToc:
     def FromFile(self, path):
         self.UpdatePath(path)
         bin_data = b""
-        with open(path, 'r+b') as f:
-            bin_data = f.read()
-        self.magic = struct.unpack("<I", bin_data[0:4])[0]
-        if self.magic != 4026531857: return False
+        file = open(path, 'r+b')
+        bin_data = file.read(12)
+        magic, numTypes, numFiles = struct.unpack("<III", bin_data)
+        if magic != 4026531857:
+            file.close()
+            return False
 
-        self.numTypes, self.numFiles = struct.unpack("<II", bin_data[4:12])
-
-        file_id = 0
-        type_id = 0
-        offset = 72 + (self.numTypes << 5)
-        for _ in range(self.numFiles):
+        offset = 60 + (numTypes << 5)
+        bin_data = file.read(offset + 80 * numFiles)
+        file.close()
+        for _ in range(numFiles):
             file_id, type_id = struct.unpack_from("<QQ", bin_data, offset=offset)
             try:
                 self.TocEntries[type_id].append(file_id)
@@ -1285,6 +1284,9 @@ class TocManager():
 
         return toc
 
+    def GetEntryByLoadArchive(self, FileID: int, TypeID: int):
+        return self.GetEntry(FileID, TypeID, SearchAll=True, IgnorePatch=True)
+    
     def ArchiveNotEmpty(self, toc):
         hasMaterials = False
         hasTextures = False
@@ -3414,58 +3416,22 @@ def PatchesNotLoaded(self):
     else:
         return False
 
-def DuplicateIDsInScene(self):
-    CustomObjects = []
-    for obj in bpy.context.selected_objects:
-        if len(obj.keys()) > 1:
-            for key in obj.keys():
-                if key == "Z_ObjectID":
-                    indexKey = "MeshInfoIndex"
-                    PrettyPrint(f"obj: {obj.name} id: {obj[key]} index: {obj[indexKey]}")
-                    for otherObject in CustomObjects:
-                        if obj[key] == otherObject[0] and obj[indexKey] == otherObject[1]:
-                            PrettyPrint(f"found {obj}")
-                            self.report({'ERROR'}, f"Multiple objects with the same HD2 properties are in the scene! Please delete one and try again.\nObjects:{otherObject[2]}, {obj.name}")
-                            return True
-                    CustomObjects.append([obj[key], obj[indexKey], obj.name])
-    return False
-
-def IncorrectVertexGroupNaming(self):
-    for obj in bpy.context.selected_objects:
-        incorrectGroups = 0
-        try:
-            ID = obj["Z_ObjectID"]
-            InfoIndex = obj["MeshInfoIndex"]
-        except:
-            self.report({'ERROR'}, f"Couldn't find HD2 Properties in {obj.name}")
-            return True
-        if len(obj.vertex_groups) <= 0:
-            self.report({'ERROR'}, f"No Vertex Groups Found for Object: {obj.name}")
-            return True
-        for group in obj.vertex_groups:
-            if "_" not in group.name:
-                incorrectGroups += 1
-        if incorrectGroups > 0:
-            self.report({'ERROR'}, f"Found {incorrectGroups} Incorrect Vertex Group Name Scheming for Object: {obj.name}")
-            return True
-    return False
-
-def ObjectHasModifiers(self):
-    for obj in bpy.context.selected_objects:
+def ObjectHasModifiers(self, objects):
+    for obj in objects:
         if obj.modifiers:
             self.report({'ERROR'}, f"Object: {obj.name} has {len(obj.modifiers)} unapplied modifiers")
             return True
     return False
 
-def ObjectHasShapeKeys(self):
-    for obj in bpy.context.selected_objects:
+def ObjectHasShapeKeys(self, objects):
+    for obj in objects:
         if hasattr(obj.data.shape_keys, 'key_blocks'):
             self.report({'ERROR'}, f"Object: {obj.name} has {len(obj.data.shape_keys.key_blocks)} unapplied shape keys")
             return True
     return False
 
-def MaterialsNumberNames(self):
-    mesh_objs = [ob for ob in bpy.context.selected_objects if ob.type == 'MESH']
+def MaterialsNumberNames(self, objects):
+    mesh_objs = [ob for ob in objects if ob.type == 'MESH']
     for mesh in mesh_objs:
         invalidMaterials = 0
         if len(mesh.material_slots) == 0:
@@ -3483,8 +3449,8 @@ def MaterialsNumberNames(self):
             return True
     return False
 
-def HasZeroVerticies(self):
-    mesh_objs = [ob for ob in bpy.context.selected_objects if ob.type == 'MESH']
+def HasZeroVerticies(self, objects):
+    mesh_objs = [ob for ob in objects if ob.type == 'MESH']
     for mesh in mesh_objs:
         verts = len(mesh.data.vertices)
         PrettyPrint(f"Object: {mesh.name} Verticies: {verts}")
@@ -3494,16 +3460,23 @@ def HasZeroVerticies(self):
     return False
 
 def MeshNotValidToSave(self):
-    return PatchesNotLoaded(self) or DuplicateIDsInScene(self) or IncorrectVertexGroupNaming(self) or ObjectHasModifiers(self) or MaterialsNumberNames(self) or HasZeroVerticies(self) or ObjectHasShapeKeys(self)
-
-
+    objects = bpy.context.selected_objects
+    return (PatchesNotLoaded(self) or 
+            (not CheckDuplicateIDsInScene(self, objects)) or 
+            (not CheckVertexGroups(self, objects)) or 
+            ObjectHasModifiers(self, objects) or 
+            MaterialsNumberNames(self, objects) or 
+            HasZeroVerticies(self, objects) or 
+            ObjectHasShapeKeys(self, objects) or 
+            (not CheckHaveHD2Properties(self, objects))
+            )
+  
 def CheckPatchLoaded(reporter):
     if len(Global_TocManager.Patches) <= 0:
         reporter.report({'ERROR'}, "No Patches Currently Loaded")
         return False
     else:
         return True
-
 
 def CheckHaveHD2Properties(reporter, blender_objects):
     passed = True
@@ -4987,8 +4960,6 @@ class SaveStingrayParticleOperator(Operator):
         if mode != 'OBJECT':
             self.report({'ERROR'}, f"You are Not in OBJECT Mode. Current Mode: {mode}")
             return {'CANCELLED'}
-        if MeshNotValidToSave(self):
-            return {'CANCELLED'}
         wasSaved = Global_TocManager.Save(int(self.object_id), ParticleID)
 
         # we can handle below later when we put a particle object into the blender scene
@@ -5281,7 +5252,9 @@ class MeshFixOperator(Operator, ImportHelper):
     )
 
     use_filter_folder = True
-    def execute(self, context):
+    def execute(self, context):   
+        if ArchivesNotLoaded(self):
+            return {'CANCELLED'}
         path = self.directory
         output = RepatchMeshes(self, path)
         if output == {'CANCELLED'}: return {'CANCELLED'}
@@ -5326,6 +5299,7 @@ def RepatchMeshes(self, path):
                 PrettyPrint(f"Skipping {entry.FileID} as it is not a mesh entry")
                 continue
             PrettyPrint(f"Repatching {entry.FileID}")
+            Global_TocManager.GetEntryByLoadArchive(entry.FileID, entry.TypeID)
             settings.AutoLods = True
             settings.ImportStatic = False
             numMeshesRepatched += 1

@@ -305,6 +305,10 @@
         "987b77ea5a7e5d9e": "Impaler",
         "cb1a080e107f3132": "Brood Commander"
     },
+
+    "NPC": {
+        "131fe264b7380717": "SEAF Solider"
+    },
     "Vehicle": {
         "0bdf199f7ac14f43": "Fast Recon Vehicle (FRV)",
         "22749a294788af66": "EXO-45 Patriot Exosuit",
@@ -412,7 +416,8 @@
         "2a9fb8f5d0576eae": "ARC-3 Arc Thrower",
         "902c54afb4ed396f": "MG-206 Heavy Machine Gun",
         "5795e99a988d10b7": "StA-X3 W.A.S.P. Launcher",
-        "750605cfc0173701": "TX-41 Sterilizer"
+        "750605cfc0173701": "TX-41 Sterilizer",
+        "93fa804787551c15": "SH-51 Directional Shield"
     },
 
     "Unreleased": {

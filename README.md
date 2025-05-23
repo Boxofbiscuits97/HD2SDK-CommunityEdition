@@ -41,7 +41,28 @@ We've taken the time to write a tutorial focused on armor modding which should a
 - [Community Discord](https://discord.gg/ZwjPaZNwH7) for support with **Community Edition**
 - [Toasted Discord](https://discord.gg/ftSZppf) for the original addon creators
 
+## Development Setup
+> [!NOTE]
+> This is a tutorial about developing in [VSCode](https://code.visualstudio.com/). If you do not have VSCode, install it [Here](https://code.visualstudio.com/).
 
+1. Assure the **SDK is uninstalled**
+2. [Create a fork of the repository](https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/fork)
+3. Copy the link to your fork
+5. Open VSCode and go to the Source Control Tab
+6. Click clone repository and paste the link to your fork
+7. Find your Blender Addons folder and choose that as the directory.
+   - Example: `C:\Users\<USERNAME>\AppData\Roaming\Blender Foundation\Blender\4.0\scripts\addons`
+9. Open Blender and navigate to preferences and enable the addon
+10. Now the project is setup and changes can be made and will reflect each time blender is restarted
+
+### Hot reloading the blender addon
+1. In blender go to `Edit > Preferences > Keymap`
+2. Unfold the window section
+3. Scroll down and `Add New`
+4. Unfold the new bind
+5. Change `none` to `script.reload`
+6. Change the key to a preferred bind
+7. Now pressing the bind reloads the addon
 
 ## Credits
 - Toasted modding team for making the [original version](https://github.com/kboykboy2/io_scene_helldivers2)

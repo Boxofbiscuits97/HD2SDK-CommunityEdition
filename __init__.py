@@ -4351,7 +4351,7 @@ class SaveStingrayMeshOperator(Operator):
         start = time.time()
         errors = False
 
-        objects = bpy.context.selected_objects
+        objects = [bpy.context.selected_objects[0]]
 
         if len(objects) == 0:
             self.report({'WARNING'}, "No Objects Selected")

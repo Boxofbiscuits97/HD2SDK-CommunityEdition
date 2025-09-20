@@ -1958,9 +1958,9 @@ def CreateSkeleton(stingray_unit, id, Global_BoneNames):
             if newBone is None:
                 newBone = armature.edit_bones.new(boneName)
                 newBone.tail = 0, 0.0000025, 0
-                doPoseBone[bone.name] = True
+                doPoseBone[newBone.name] = True
             else:
-                doPoseBone[bone.name] = False
+                doPoseBone[newBone.name] = False
             bones[i] = newBone
             boneParents[i] = boneParent
             boneTransforms[newBone.name] = transform_info.Transforms[i]

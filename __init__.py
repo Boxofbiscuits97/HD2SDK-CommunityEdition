@@ -19,6 +19,8 @@ import requests
 import json
 import struct
 import concurrent.futures
+import zipfile
+import shutil
 
 #import pyautogui 
 
@@ -194,9 +196,15 @@ def CheckAddonUpToDate():
 
             global Global_addonUpToDate
             global Global_latestAddonVersion
-            Global_addonUpToDate = latestVersion == currentVersion
+            if latestVersion[0] > currentVersion[0]:
+                Global_addonUpToDate = False
+            elif latestVersion[0] == currentVersion[0] and latestVersion[1] > currentVersion[1]:
+                Global_addonUpToDate = False
+            elif latestVersion[0] == currentVersion[0] and latestVersion[1] == currentVersion[1] and latestVersion[2] > currentVersion[2]:
+                Global_addonUpToDate = False
+            else:
+                Global_addonUpToDate = True
             Global_latestAddonVersion = f"{latestVersion[0]}.{latestVersion[1]}.{latestVersion[2]}"
-
             if Global_addonUpToDate:
                 PrettyPrint("Addon is up to date!")
             else:
@@ -3491,6 +3499,62 @@ class LatestReleaseOperator(Operator):
         url = "https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/releases/latest"
         webbrowser.open(url, new=0, autoraise=True)
         return{'FINISHED'}
+        
+class AutoUpdateOperator(Operator):
+    bl_label = "Auto Update Helldivers 2 SDK"
+    bl_idname = "helldiver2.update"
+    bl_description = "Updates the addon to the latest release"
+    
+    def execute(self, context):
+        r = requests.get("https://api.github.com/repos/boxofbiscuits97/HD2SDK-CommunityEdition/releases/latest")
+        if r.status_code != 200:
+            self.report({'ERROR'}, "Error fetching latest update")
+            return {'CANCELLED'}
+        data = r.json()
+        download_url = data["assets"][0]["browser_download_url"]
+        r = requests.get(download_url)
+        if r.status_code != 200:
+            self.report({'ERROR'}, "Error fetching latest update")
+            return {'CANCELLED'}
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        zipfilepath = os.path.join(script_dir, "temp.zip")
+        for item in os.listdir(script_dir):
+            item = os.path.join(script_dir, item)
+            if os.path.isfile(item):
+                try:
+                    os.remove(item)
+                except:
+                    pass
+            elif os.path.isdir(item):
+                try:
+                    shutil.rmtree(item)
+                except:
+                    pass
+        with open(zipfilepath, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+        z = zipfile.ZipFile(zipfilepath)
+        for member in z.namelist():
+            if member.startswith("HD2SDK-CommunityEdition") and not member.endswith('/'):
+                relative_path = os.path.relpath(member, "HD2SDK-CommunityEdition")
+                destination_path = os.path.join(script_dir, relative_path)
+
+                # Create necessary subdirectories if they don't exist
+                os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+
+                # Extract the file (DLL has permission error to overwrite)
+                try:
+                    with z.open(member) as source, open(destination_path, 'wb') as target:
+                        target.write(source.read())
+                except:
+                    pass
+        z.close()
+        try:
+            os.remove(zipfilepath)
+        except:
+            pass
+        bpy.ops.script.reload()
+        return {'FINISHED'}
 
 class MeshFixOperator(Operator, ImportHelper):
     bl_label = "Fix Meshes"
@@ -3941,7 +4005,7 @@ class HellDivers2ToolsPanel(Panel):
             row = layout.row()
             row.alignment = 'CENTER'
             row.scale_y = 2
-            row.operator("helldiver2.latest_release", icon = 'URL')
+            row.operator("helldiver2.update", icon = 'URL')
             row.separator()
 
         # Draw Settings, Documentation and Spreadsheet
@@ -4461,6 +4525,7 @@ classes = (
     GenerateEntryIDOperator,
     SetMaterialTemplateOperator,
     LatestReleaseOperator,
+    AutoUpdateOperator,
     MaterialShaderVariableEntryOperator,
     MaterialShaderVariableColorEntryOperator,
     MeshFixOperator,

@@ -32,11 +32,15 @@ class StingrayMeshFile:
         self.UnreversedCustomizationData = bytearray()
         self.UnreversedConnectingBoneData = bytearray()
         self.UnreversedLODGroupListData = bytearray()
+        self.UnreversedWwiseCallbackData = bytearray()
+        self.UnreversedPreLightListData = bytearray()
         self.UnreversedLODGroupListDataOffset = 0
         self.UnkHeaderData1 = bytearray()
         self.StateMachineRef = self.UnkRef2 = self.LodGroupOffset = 0
         self.NameHash = 0
         self.LightListOffset = 0
+        self.UnkPreLightListOffset = 0
+        self.WwiseCallbackOffset = 0
         self.LoadMaterialSlotNames = True
 
     # -- Serialize Mesh -- #
@@ -104,7 +108,9 @@ class StingrayMeshFile:
         self.UnreversedLODGroupListDataOffset = f.uint32(self.UnreversedLODGroupListDataOffset)
         self.TransformInfoOffset= f.uint32(self.TransformInfoOffset)
         self.LightListOffset    = f.uint32(self.LightListOffset)
-        self.HeaderData2        = f.bytes(self.HeaderData2, 16)
+        self.UnkPreLightListOffset = f.uint32(self.UnkPreLightListOffset)
+        self.WwiseCallbackOffset= f.uint32(self.WwiseCallbackOffset)
+        self.HeaderData2        = f.bytes(self.HeaderData2, 8)
         self.CustomizationInfoOffset  = f.uint32(self.CustomizationInfoOffset)
         self.UnkHeaderOffset1   = f.uint32(self.UnkHeaderOffset1)
         self.ConnectingBoneHashOffset   = f.uint32(self.ConnectingBoneHashOffset)
@@ -115,7 +121,7 @@ class StingrayMeshFile:
         self.HeaderUnk          = f.uint64(self.HeaderUnk)
         self.MaterialsOffset    = f.uint32(self.MaterialsOffset)
         
-        f.seek(f.tell() + 28)
+        f.seek(f.tell() + 12)
 
         if f.IsReading() and self.MeshInfoOffset == 0:
             raise Exception("Unsupported Mesh Format (No geometry)")
@@ -136,6 +142,29 @@ class StingrayMeshFile:
             loc = f.tell(); f.seek(self.CustomizationInfoOffset)
             self.CustomizationInfo.Serialize(f)
             f.seek(loc)
+            
+        # Wwise Callback Data
+        if self.WwiseCallbackOffset > 0:
+            if f.IsReading():
+                f.seek(self.WwiseCallbackOffset)
+                if self.UnkPreLightListOffset > 0:
+                    data_size = self.UnkPreLightListOffset - f.tell()
+                elif self.LightListOffset > 0:
+                    data_size = self.LightListOffset - f.tell()
+            else:
+                data_size = len(self.UnreversedWwiseCallbackData)
+                self.WwiseCallbackOffset = f.tell()
+            self.UnreversedWwiseCallbackData = f.bytes(self.UnreversedWwiseCallbackData, data_size)
+        
+        # Pre light list data
+        if self.UnkPreLightListOffset > 0:
+            if f.IsReading():
+                f.seek(self.UnkPreLightListOffset)
+                data_size = self.LightListOffset - self.UnkPreLightListOffset
+            else:
+                data_size = len(self.UnreversedPreLightListData)
+                self.UnkPreLightListOffset = f.tell()
+            self.UnreversedPreLightListData = f.bytes(self.UnreversedPreLightListData, data_size)
         
         # Get Light data
         if f.IsReading():
@@ -1939,10 +1968,11 @@ def GetMeshData(og_object, Global_TocManager, Global_BoneNames):
                         boneIndices.extend([[[0,0,0,0] for n in range(len(mesh.vertices))]]*dif)
                     boneIndices[HDGroupIndex][vert_idx][group_idx] = HDBoneIndex
                     weights[vert_idx][group_idx] = group.weight
+        if boneIndices == []:
+            weights = []
     else:
         boneIndices = []
         weights     = []
-
     
     # set bone matrices in bone index mappings
     # matrices in bone_info are the inverted joint matrices (for some reason)

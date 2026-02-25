@@ -1625,9 +1625,10 @@ def LoadStingrayTexture(ID, TocData, GpuData, StreamData, Reload, MakeBlendObjec
         else:
             print(f"[HD2SDK:CE] Linux detected, changing to temp directory")
             # Переходим в /tmp и используем только имя файла
-            bash_cmd = f"cd '{tempdir}' && '{Global_texconvpath}' -y -o . -ft png -f R8G8B8A8_UNORM -sepalpha '{dds_filename}'"
-            print(f"[HD2SDK:CE] Running: {bash_cmd}")
-            result = subprocess.run(['bash', '-c', bash_cmd], capture_output=True, text=True)
+            # linux : omiting -alpha (BC7 2dArray issue) for "--"  
+            cmd = [Global_texconvpath, "-y", "-o", ".", "-ft", "png", "-f", "R8G8B8A8_UNORM", "-sepalpha", "--", dds_filename]
+            print(f"[HD2SDK:CE] Running: {cmd}")
+            result = subprocess.run(cmd, cwd=tempdir, capture_output=True, text=True)
         
         print(f"[HD2SDK:CE] Return code: {result.returncode}")
         if result.stdout:

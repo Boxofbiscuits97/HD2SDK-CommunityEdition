@@ -109,7 +109,10 @@
         "19b5a68e61d7a9d7": "UF-16 Inspector",
         "871290e9d5703851": "UF-50 Bloodhound",
         "91033cfaaad4ad18": "UF-84 Doubt Killer",
-        "0fecb336be1d287b": "UF-84 Doubt Killer"
+        "0fecb336be1d287b": "UF-84 Doubt Killer",
+        "81bf25bbdd4624c1": "CPH-26 Commandant",
+        "e7449208a97fa22e": "CPG-48 Sapper",
+        "07a2056e7a5f313f": "CPR-80 Bulwark"
     },
 
     "Helmet": {
@@ -215,7 +218,10 @@
         "fb025c06b0408e5f": "UF-16 Inspector",
         "15dcd137ebe874ed": "UF-50 Bloodhound",
         "292b09dac80ce1de": "UF-84 Doubt Killer",
-        "88b7d737b6e62cc0": "UF-84 Doubt Killer"
+        "88b7d737b6e62cc0": "UF-84 Doubt Killer",
+        "a67993f7af5594d8": "CPH-26 Commandant",
+        "d4fb7d61ad409841": "CPG-48 Sapper",
+        "51a7562176a8ac19": "CPR-80 Bulwark"
     },
 
     "Cape": {
@@ -292,7 +298,11 @@
         "61f85b8c1bf97b03": "Foe Rent Asunder",
         "fd679c4070acb043": "Mark of the Constrictor",
         "8ca53afa7fb23710": "De-Forester's Sailcloth",
-        "25839eed0400603b": "Against the Tyrant Cloud"
+        "25839eed0400603b": "Against the Tyrant Cloud",
+        "a751b4cd139b0eb3": "Reckoning's Cheer",
+        "7caea0a631afeb5f": "Dignity of Toil",
+        "1ff9ac94b5d8c7cd": "Crest of the Unsullied",
+        "ab5053cd9f74be7d": "Testament To Attrition"
     },
 
     "Icons": { 
@@ -389,7 +399,10 @@
         "6502c77f9595fbc2": "Voteless",
         "e7765eef5f60acea": "Fleshmob",
         "70b4860e8169622e": "Overship",
-        "dd43ebba60a66968": "Leviathan"
+        "dd43ebba60a66968": "Leviathan",
+        "b97df541a966620a": "Gatekeeper",
+        "687d548654b91be6": "Veracitor",
+        "864114866d6b24eb": "Obtruder"
     },
 
     "Automaton": {
@@ -476,10 +489,12 @@
         "21e90918df69eff7": "G-16 Impact",
         "543ff1ff0bd82b44": "G-23 Stun",
         "ddcea5fdd4071767": "G-31 Arc",
+        "2f1147605182c6ab": "G-48 Giga Grenade",
         "f590569dbbc6fe2d": "G-50 Seeker",
         "2cb3f69ab9bc1297": "G-109 Urchin",
         "dfb81f9917285965": "G-123 Thermite",
         "1721eee4581a9c54": "G-142 PyroTech",
+        "f111fa26003c0de9": "G/SH-39 Shield",
         "3bf0844097ab595f": "K-2 Throwing Knife",
         "fae34acb79502f53": "TM-01 Lure Mine"
     },
@@ -519,7 +534,8 @@
         "0601a2f91ec178a9": "MP-98 Knight",
         "0edad8ddec238bd9": "SMG-32 Reprimand",
         "f230d2d2adcc034a": "SMG-72 Pummeler & SMG-37 Defender",
-        "9494c346e564d15f": "StA-11 SMG"
+        "9494c346e564d15f": "StA-11 SMG",
+        "a275324ae43dfd50": "SMG/FLAM-34 Stoker"
     },
 
     "Shotgun": {
@@ -527,6 +543,7 @@
         "695ba4a2683b4ce3": "SG-8S Slugger",
         "522be23400cc6086": "SG-20 Halt",
         "31894c33c4ed1e2a": "SG-88 Break-Action Shotgun",
+        "933148104d23a322": "SG-97 Sweeper",
         "c5a05d09369d0670": "SG-225 Breaker, SG-225SP Breaker Spray & Pray",
         "2fe755e42b659f64": "SG-225IE Breaker Incendiary",
         "7af5df78217fd645": "SG-451 Cookout",
@@ -574,13 +591,14 @@
         "39ddd2e6f131c873": "CQC-20 Breaching Hammer",
         "f3c65eaab75f1fc2": "CQC-30 Stun Baton",
         "f5014993c8402d87": "CQC-42 Machete",
-        "49de16e1343250e4": "Entrenchment Tool"
+        "49de16e1343250e4": "CQC-73 Entrenchment Tool"
     },
 
     "Pistol": {
         "bf2250de0b17285c": "P-2 Peacemaker",
         "94b554570b12c088": "P-4 Senator",
         "99f20df1c4cf885a": "P-19 Redeemer",
+        "58038f21c4334481": "P-69 Veto",
         "5d5c93ef05a46880": "P-92 Warrant",
         "b47514ae19a494f0": "P-113 Verdict",
         "2a5298e1c2f70c82": "M6C SOCOM Pistol"
@@ -590,6 +608,7 @@
         "6ad7cc21015a5f85": "AC-8 Autocannon",
         "2a9fb8f5d0576eae": "ARC-3 Arc Thrower",
         "ea6967f8565a2d76": "APW-1 Anti-Materiel Rifle",
+        "df16f5c644edc2b1": "B/FLAM-80 Cremator",
         "c40e3b3fa79052ec": "CQC-1 One True Flag",
         "eeebc5fd26fe0f40": "CQC-9 Defoliation Tool",
         "de96cd7cc69628bc": "EAT-17 Expendable Anti-Tank",
@@ -687,7 +706,8 @@
         "3968938b8147df7c": "Solo Light",
         "981a0bf27dd6a546": "Tenderizer Muzzle Break",
         "64f56a84b883af7d": "Vertical Foregrip",
-        "c5de422eed100414": "Vertical Foregrip W/ Flashlight"
+        "c5de422eed100414": "Vertical Foregrip W/ Flashlight",
+        "838a0fde641bb2b0": "Sweeper Bayonet"
     },
 
     "Backpack": {

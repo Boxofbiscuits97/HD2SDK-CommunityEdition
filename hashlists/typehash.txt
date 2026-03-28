@@ -44,3 +44,4 @@ e3f2851035957af5 hash_lookup
 e985c5f61c169997 speedtree
 f7a09f8bb35a1d49 havok_physics_properties
 fcaaf813b4d3cc1e camera_shake
+5ee65304478f8db5 bik2

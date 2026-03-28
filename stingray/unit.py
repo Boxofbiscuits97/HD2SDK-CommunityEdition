@@ -124,6 +124,9 @@ class StingrayMeshFile:
         f.seek(f.tell() + 12)
 
         if f.IsReading() and self.MeshInfoOffset == 0:
+            if bpy.context.scene.Hd2ToolPanelSettings.SkipMeshImportErrors:
+                PrettyPrint(f"Skipping mesh import due to SkipMeshImportErrors setting.", 'warn')
+                return
             raise Exception("Unsupported Mesh Format (No geometry)")
 
         if f.IsReading() and (self.StreamInfoOffset == 0 and self.CompositeRef == 0):

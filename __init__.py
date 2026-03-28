@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Helldivers 2 SDK: Community Edition",
-    "version": (3, 4, 1),
+    "version": (3, 5, 0),
     "blender": (4, 0, 0),
     "category": "Import-Export",
 }
@@ -271,13 +271,13 @@ def UpdateArchiveHashes():
     except requests.HTTPError as err:
         PrettyPrint(f"HTTP error occurred: {err}", "warn")
 
-def EntriesFromStrings(file_id_string, type_id_string):
+def EntriesFromStrings(file_id_string, type_id_string, IgnorePatch=False):
     FileIDs = file_id_string.split(',')
     TypeIDs = type_id_string.split(',')
     Entries = []
     for n in range(len(FileIDs)):
         if FileIDs[n] != "":
-            Entries.append(Global_TocManager.GetEntry(int(FileIDs[n]), int(TypeIDs[n])))
+            Entries.append(Global_TocManager.GetEntry(int(FileIDs[n]), int(TypeIDs[n]), IgnorePatch))
     return Entries
 
 def EntriesFromString(file_id_string, TypeID):
@@ -292,8 +292,11 @@ def IDsFromString(file_id_string):
     FileIDs = file_id_string.split(',')
     Entries = []
     for n in range(len(FileIDs)):
-        if FileIDs[n] != "":
-            Entries.append(int(FileIDs[n]))
+        ID = FileIDs[n]
+        if ID.startswith("0x"):
+            ID = hex_to_decimal(ID)
+        if ID != "":
+            Entries.append(int(ID))
     return Entries
 
 def GetDisplayData():
@@ -1887,12 +1890,15 @@ class ChangeFilepathOperator(Operator, ImportHelper):
         global Global_gamepathIsValid
         filepath = self.filepath
         steamapps = "steamapps"
+        steamapps_capitalized = "SteamApps"
         if steamapps in filepath:
-            filepath = f"{filepath.partition(steamapps)[0]}steamapps/common/Helldivers 2/data/ "[:-1]
+            filepath = f"{filepath.partition(steamapps)[0]}steamapps/common/Helldivers 2/data/"
+        elif steamapps_capitalized in filepath:
+            filepath = f"{filepath.partition(steamapps_capitalized)[0]}SteamApps/common/Helldivers 2/data/"
         else:
             self.report({'ERROR'}, f"Could not find steamapps folder in filepath: {filepath}")
             return{'CANCELLED'}
-        Global_gamepath = filepath
+        Global_gamepath = filepath.replace('\\', '/')
         Global_gamepathIsValid = True
         UpdateConfig()
         PrettyPrint(f"Changed Game File Path: {Global_gamepath}")
@@ -2049,8 +2055,7 @@ class SearchByEntryIDOperator(Operator, ImportHelper):
                 ID = hex_to_decimal(ID)
             ID = int(ID)
            
-            Archives = SearchByEntryID(ID)
-            
+            Archives = SearchByEntryID([ID])
             if Archives and bpy.context.scene.Hd2ToolPanelSettings.LoadFoundArchives:
                 for Archive in Archives:
                     Global_TocManager.LoadArchive(Archive.Path, True, False)
@@ -2074,19 +2079,16 @@ class SearchByEntryIDInput(Operator):
 
     entry_id: StringProperty(name="Entry ID")
     def execute(self, context):
-            ID = self.entry_id
-            if ID.startswith("0x"):
-                ID = hex_to_decimal(self.entry_id)
+        IDs = IDsFromString(self.entry_id)
+        Archives = SearchByEntryID(IDs, bpy.context.scene.Hd2ToolPanelSettings.SearchAllInclusiveOnly)
+        for Archive in Archives:
+            Global_TocManager.LoadArchive(Archive.Path)
 
-            Archives = SearchByEntryID(int(ID))
-            for Archive in Archives:
-                Global_TocManager.LoadArchive(Archive.Path)
-
-            # Redraw
-            for area in context.screen.areas:
-                if area.type == "VIEW_3D": area.tag_redraw()
-            
-            return{'FINISHED'}
+        # Redraw
+        for area in context.screen.areas:
+            if area.type == "VIEW_3D": area.tag_redraw()
+        
+        return{'FINISHED'}
     
     def invoke(self, context, event):
         if ArchivesNotLoaded(self):
@@ -2097,16 +2099,25 @@ class SearchByEntryIDInput(Operator):
         layout = self.layout
         layout.prop(self, "entry_id")
 
-def SearchByEntryID(ID: int):
+def SearchByEntryID(IDs: list[int], includeAllInArchives=False):
     global Global_TocManager
     archives = []
-    PrettyPrint(f"Searching for ID: {ID}")
     for Archive in Global_TocManager.SearchArchives:
-        if ID in Archive.fileIDs:
-            PrettyPrint(f"Found ID: {ID} in Archive: {Archive.Name}")
-            archives.append(Archive)
-        
-    PrettyPrint(f"Found ID: {ID} in {len(archives)} unique archives")
+        if includeAllInArchives:
+            if set(IDs).issubset(set(Archive.fileIDs)):
+                PrettyPrint(f"Found all IDs: {IDs} in Archive: {Archive.Name}")
+                archives.append(Archive)
+                if bpy.context.scene.Hd2ToolPanelSettings.LoadOnlyFirstFoundArchive:
+                        break
+        else:
+            for ID in IDs:
+                if ID in Archive.fileIDs:
+                    PrettyPrint(f"Found ID: {ID} in Archive: {Archive.Name}")
+                    archives.append(Archive)
+                if bpy.context.scene.Hd2ToolPanelSettings.LoadOnlyFirstFoundArchive:
+                    break
+
+    PrettyPrint(f"Found IDs in {len(archives)} unique archives")
     PrettyPrint(archives)
     return archives
 
@@ -2545,8 +2556,10 @@ class DumpArchiveObjectOperator(Operator):
 
     object_id: StringProperty(options={"HIDDEN"})
     object_typeid: StringProperty(options={"HIDDEN"})
+    ignore_patch: BoolProperty(default=False, options={"HIDDEN"})
+
     def execute(self, context):
-        Entries = EntriesFromStrings(self.object_id, self.object_typeid)
+        Entries = EntriesFromStrings(self.object_id, self.object_typeid, self.ignore_patch)
         for Entry in Entries:
             if Entry != None:
                 data = Entry.GetData()
@@ -4205,6 +4218,7 @@ def LoadEntryLists():
                         new_item.item_filter_name = new_item.item_name
                 else:
                     new_item.item_filter_name = new_item.item_name
+                new_item.item_filter_name += f",{GetFriendlyNameFromID(Entry.FileID)}"
     if patch:
         for entry_type in patch.TocDict.keys():
             try:
@@ -4229,6 +4243,7 @@ def LoadEntryLists():
                         new_item.item_filter_name = new_item.item_name
                 else:
                     new_item.item_filter_name = new_item.item_name
+                new_item.item_filter_name += f",{GetFriendlyNameFromID(Entry.FileID)}"
     if state_machine_warning:
         PrettyPrint("State machine not loaded for all animations; filtering animations by armature may not work.", "warn")
         
@@ -4277,30 +4292,33 @@ class Hd2ToolPanelSettings(PropertyGroup):
     ShowExtras       : BoolProperty(name="Extra Entry Types", description = "Shows all Extra entry types.", default = False)
     FriendlyNames    : BoolProperty(name="Show Friendly Names", description="Enable friendly names for entries if they have any. Disabling this option can greatly increase UI preformance if a patch has a large number of entries.", default = True)
 
-    ImportMaterials  : BoolProperty(name="Import Materials", description = "Fully import materials by appending the textures utilized, otherwise create placeholders", default = True)
-    ImportLods       : BoolProperty(name="Import LODs", description = "Import LODs", default = False)
-    ImportGroup0     : BoolProperty(name="Import Group 0 Only", description = "Only import the first vertex group, ignore others", default = True)
-    ImportCulling    : BoolProperty(name="Import Culling Bounds", description = "Import Culling Bodies", default = False)
-    ImportStatic     : BoolProperty(name="Import Static Meshes", description = "Import Static Meshes", default = False)
-    MakeCollections  : BoolProperty(name="Make Collections", description = "Make new collection when importing meshes", default = False)
-    Force3UVs        : BoolProperty(name="Force 3 UV Sets", description = "Force at least 3 UV sets, some materials require this", default = True)
-    Force1Group      : BoolProperty(name="Force 1 Group", description = "Force mesh to only have 1 vertex group", default = True)
-    AutoLods         : BoolProperty(name="Auto LODs", description = "Automatically generate LOD entries based on LOD0, does not actually reduce the quality of the mesh", default = True)
-    RemoveGoreMeshes : BoolProperty(name="Remove Gore Meshes", description = "Automatically delete all of the verticies with the gore material when loading a model", default = False)
-    SaveBonePositions: BoolProperty(name="Save Animation Bone Positions", description = "Include bone positions in animation (may mess with additive animations being applied)", default = True)
-    ImportArmature   : BoolProperty(name="Import Armatures", description = "Import unit armature data", default = True)
-    MergeArmatures   : BoolProperty(name="Merge Armatures", description = "Merge new armatures to the selected armature", default = False)
-    ParentArmature   : BoolProperty(name="Parent Armatures", description = "Make imported armatures the parent of the imported mesh", default = True)
-    SplitUVIslands   : BoolProperty(name="Split UV Islands", description = "Split mesh by UV islands when saving", default = False)
+    ImportMaterials      : BoolProperty(name="Import Materials", description = "Fully import materials by appending the textures utilized, otherwise create placeholders", default = True)
+    ImportLods           : BoolProperty(name="Import LODs", description = "Import LODs", default = False)
+    ImportGroup0         : BoolProperty(name="Import Group 0 Only", description = "Only import the first vertex group, ignore others", default = True)
+    ImportCulling        : BoolProperty(name="Import Culling Bounds", description = "Import Culling Bodies", default = False)
+    ImportStatic         : BoolProperty(name="Import Static Meshes", description = "Import Static Meshes", default = False)
+    MakeCollections      : BoolProperty(name="Make Collections", description = "Make new collection when importing meshes", default = False)
+    Force3UVs            : BoolProperty(name="Force 3 UV Sets", description = "Force at least 3 UV sets, some materials require this", default = True)
+    Force1Group          : BoolProperty(name="Force 1 Group", description = "Force mesh to only have 1 vertex group", default = True)
+    AutoLods             : BoolProperty(name="Auto LODs", description = "Automatically generate LOD entries based on LOD0, does not actually reduce the quality of the mesh", default = True)
+    RemoveGoreMeshes     : BoolProperty(name="Remove Gore Meshes", description = "Automatically delete all of the verticies with the gore material when loading a model", default = False)
+    SaveBonePositions    : BoolProperty(name="Save Animation Bone Positions", description = "Include bone positions in animation (may mess with additive animations being applied)", default = True)
+    ImportArmature       : BoolProperty(name="Import Armatures", description = "Import unit armature data", default = True)
+    MergeArmatures       : BoolProperty(name="Merge Armatures", description = "Merge new armatures to the selected armature", default = False)
+    ParentArmature       : BoolProperty(name="Parent Armatures", description = "Make imported armatures the parent of the imported mesh", default = True)
+    SplitUVIslands       : BoolProperty(name="Split UV Islands", description = "Split mesh by UV islands when saving", default = False)
+    SkipMeshImportErrors : BoolProperty(name="Skip Mesh Import Errors", description = "Continue importing meshes even if errors are encountered", default = False)
     # Search
     SearchField      : StringProperty(default = "", update=ChangeSearchString)
 
     # Tools
-    EnableTools           : BoolProperty(name="Special Tools", description = "Enable advanced SDK Tools", default = False)
-    UnloadEmptyArchives   : BoolProperty(name="Unload Empty Archives", description="Unload Archives that do not Contain any Textures, Materials, or Meshes", default = True)
-    DeleteOnLoadArchive   : BoolProperty(name="Nuke Files on Archive Load", description="Delete all Textures, Materials, and Meshes in project when selecting a new archive", default = False)
-    UnloadPatches         : BoolProperty(name="Unload Previous Patches", description="Unload Previous Patches when bulk loading")
-    LoadFoundArchives     : BoolProperty(name="Load Found Archives", description="Load the archives found when search by entry ID", default=True)
+    EnableTools               : BoolProperty(name="Special Tools", description = "Enable advanced SDK Tools", default = False)
+    UnloadEmptyArchives       : BoolProperty(name="Unload Empty Archives", description="Unload Archives that do not Contain any Textures, Materials, or Meshes", default = True)
+    DeleteOnLoadArchive       : BoolProperty(name="Nuke Files on Archive Load", description="Delete all Textures, Materials, and Meshes in project when selecting a new archive", default = False)
+    UnloadPatches             : BoolProperty(name="Unload Previous Patches", description="Unload Previous Patches when bulk loading")
+    LoadFoundArchives         : BoolProperty(name="Load Found Archives", description="Load the archives found when search by entry ID", default=True)
+    LoadOnlyFirstFoundArchive : BoolProperty(name="Load Only First Found Archive", description="Only load the first archive found when searching by entry ID, otherwise all archives with the entry will be loaded", default=False)
+    SearchAllInclusiveOnly    : BoolProperty(name="Search All Inclusive Only", description="When searching for an archive, only show archives that have all entries being searched for", default=False)
 
     AutoSaveUnitMaterials : BoolProperty(name="Autosave Unit Materials", description="Save unsaved material entries applied to meshes when the unit is saved", default = True)
     SaveNonSDKMaterials   : BoolProperty(name="Save Non-SDK Materials", description="Toggle if non-SDK materials should be autosaved when saving a mesh", default = False)
@@ -4423,9 +4441,9 @@ class MY_UL_List(UIList):
                 entry = Global_TocManager.GetEntry(int(item.item_name), int(item.item_type))
                 if entry and entry.MaterialTemplate:
                     type_icon = "NODE_MATERIAL"
-            friendly_name = GetFriendlyNameFromID(int(item.item_name))
+            name = GetFriendlyNameFromID(int(item.item_name)) if bpy.context.scene.Hd2ToolPanelSettings.FriendlyNames else item.item_name
             current_list_index = getattr(context.scene, f"index_{item.item_type}")
-            op = row.operator("helldiver2.archive_entry", icon=type_icon, text=friendly_name, emboss=item.item_selected, depress=item.item_selected)
+            op = row.operator("helldiver2.archive_entry", icon=type_icon, text=name, emboss=item.item_selected, depress=item.item_selected)
             op.list_id = f"list_{item.item_type}" #"active_propname.replace("index", "list").replace("_dummy", "")
             op.list_index = index
             #row.label(text=friendly_name, icon = type_icon, depress=True)
@@ -4620,6 +4638,7 @@ class HellDivers2ToolsPanel(Panel):
             row.prop(scene.Hd2ToolPanelSettings, "ImportCulling")
             row.prop(scene.Hd2ToolPanelSettings, "ImportStatic")
             row.prop(scene.Hd2ToolPanelSettings, "RemoveGoreMeshes")
+            row.prop(scene.Hd2ToolPanelSettings, "SkipMeshImportErrors")
             row.prop(scene.Hd2ToolPanelSettings, "ParentArmature")
             row.prop(scene.Hd2ToolPanelSettings, "ImportArmature")
             row = settings_box.row(); row.separator(); row.label(text="Export Options"); box = row.box(); row = box.grid_flow(columns=1)
@@ -4650,7 +4669,8 @@ class HellDivers2ToolsPanel(Panel):
                 row.prop(scene.Hd2ToolPanelSettings, "UnloadEmptyArchives")
                 row.prop(scene.Hd2ToolPanelSettings, "UnloadPatches")
                 row.prop(scene.Hd2ToolPanelSettings, "LoadFoundArchives")
-                #row.prop(scene.Hd2ToolPanelSettings, "DeleteOnLoadArchive")
+                row.prop(scene.Hd2ToolPanelSettings, "LoadOnlyFirstFoundArchive")
+                row.prop(scene.Hd2ToolPanelSettings, "SearchAllInclusiveOnly")
                 row = box.row()
                 row.operator("helldiver2.search_by_entry", icon= 'FILEBROWSER')
                 row.operator("helldiver2.bulk_load", icon= 'IMPORT', text="Bulk Load")
@@ -4865,7 +4885,7 @@ class HellDivers2ToolsPanel(Panel):
 class WM_MT_button_context(Menu):
     bl_label = "Entry Context Menu"
 
-    def draw_entry_buttons(row, Entry):
+    def draw_entry_buttons(row, Entry: TocEntry):
         if not Entry.IsSelected:
             Global_TocManager.SelectEntries([Entry])
 
@@ -4967,6 +4987,10 @@ class WM_MT_button_context(Menu):
         props = row.operator("helldiver2.archive_object_dump_export", icon='PACKAGE', text=DumpObjectName)
         props.object_id     = FileIDStr
         props.object_typeid = TypeIDStr
+        props = row.operator("helldiver2.archive_object_dump_export", icon='PACKAGE', text=f"{DumpObjectName} (Original)")
+        props.object_id     = FileIDStr
+        props.object_typeid = TypeIDStr
+        props.ignore_patch = True
         # Draw dump import button
         # if AreAllMaterials and SingleEntry: row.operator("helldiver2.archive_object_dump_import", icon="IMPORT", text="Import Raw Dump").object_id = FileIDStr
         # Draw save buttons
@@ -5076,6 +5100,10 @@ class WM_MT_button_context(Menu):
         props = layout.operator("helldiver2.archive_object_dump_export", icon='PACKAGE', text=f"Export {len(selected_items)} Object Dump{'s' if len(selected_items) > 1 else ''}")
         props.object_id     = FileIDStr
         props.object_typeid = TypeIDStr
+        props = layout.operator("helldiver2.archive_object_dump_export", icon='PACKAGE', text=f"Export {len(selected_items)} Object Dump{'s' if len(selected_items) > 1 else ''} (Original)")
+        props.object_id     = FileIDStr
+        props.object_typeid = TypeIDStr
+        props.ignore_patch = True
         # Draw dump import button
         # if AreAllMaterials and SingleEntry: layout.operator("helldiver2.archive_object_dump_import", icon="IMPORT", text="Import Raw Dump").object_id = FileIDStr
         # Draw save buttons

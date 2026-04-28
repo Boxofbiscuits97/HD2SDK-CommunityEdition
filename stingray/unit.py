@@ -1081,42 +1081,31 @@ class StreamComponentInfo:
         elif name == "bone_index":  return 6
         elif name == "bone_weight": return 7
         return -1
-    def FormatName(self):
-        # check archive 9102938b4b2aef9d
-        if   self.Format == 0:  return "float"
-        elif self.Format == 1:  return "vec2_float"
-        elif self.Format == 2:  return "vec3_float"
-        elif self.Format == 4:  return "rgba_r8g8b8a8"
-        elif self.Format == 20: return "vec4_uint32" # vec4_uint32 ??
-        elif self.Format == 24: return "vec4_uint8"
-        elif self.Format == 25: return "vec4_1010102"
-        elif self.Format == 26: return "unk_normal"
-        elif self.Format == 29: return "vec2_half"
-        elif self.Format == 31: return "vec4_half" # found in archive 738130362c354ceb->8166218779455159235.mesh
-        return "unknown"
     def FormatFromName(self, name):
         if   name == "float":         return 0
         elif name == "vec2_float":    return 1
         elif name == "vec3_float":    return 2
+        elif name == "vec4_float":    return 3
         elif name == "rgba_r8g8b8a8": return 4
-        elif name == "vec4_uint32": return 20 # unconfirmed
-        elif name == "vec4_uint8":  return 24
-        elif name == "vec4_1010102":  return 25
-        elif name == "unk_normal":  return 26
-        elif name == "vec2_half":   return 29
-        elif name == "vec4_half":   return 31
+        elif name == "vec4_uint32": return 24
+        elif name == "vec4_uint8":  return 28
+        elif name == "vec4_1010102":  return 29
+        elif name == "unk_normal":  return 30
+        elif name == "vec2_half":   return 33
+        elif name == "vec4_half":   return 35
         return -1
     def GetSize(self):
         if   self.Format == 0:  return 4
         elif self.Format == 1:  return 8
         elif self.Format == 2:  return 12
+        elif self.Format == 3:  return 16
         elif self.Format == 4:  return 4
-        elif self.Format == 20: return 16
-        elif self.Format == 24: return 4
-        elif self.Format == 25: return 4
-        elif self.Format == 26: return 4
+        elif self.Format == 24: return 16
+        elif self.Format == 28: return 4
         elif self.Format == 29: return 4
-        elif self.Format == 31: return 8
+        elif self.Format == 30: return 4
+        elif self.Format == 33: return 4
+        elif self.Format == 35: return 8
         raise Exception("Cannot get size of unknown vertex format: "+str(self.Format))
     def SerializeComponent(self, f: MemoryStream, value):
         try:

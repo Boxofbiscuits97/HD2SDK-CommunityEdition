@@ -1359,6 +1359,9 @@ class SerializeFunctions:
     def SerializeVec3FloatComponent(f: MemoryStream, value):
         return f.vec3_float(value)
         
+    def SerializeVec4FloatComponent(f: MemoryStream, value):
+        return f.vec4_float(value)
+        
     def SerializeRGBA8888Component(f: MemoryStream, value):
         if f.IsReading():
             value = f.vec4_uint8([0,0,0,0])
@@ -1373,10 +1376,28 @@ class SerializeFunctions:
             a = min(255, int(value[3]*255))
             value = f.vec4_uint8([r,g,b,a])
         return value
-        
+    
+    def SerializeUint32Component(f: MemoryStream, value):
+        return f.uint32(value)
+
+    def SerializeVec2Uint32Component(f: MemoryStream, value):
+        return f.vec2_uint32(value)
+    
+    def SerializeVec3Uint32Component(f: MemoryStream, value):
+        return f.vec3_uint32(value)
+
     def SerializeVec4Uint32Component(f: MemoryStream, value):
         return f.vec4_uint32(value)
-        
+    
+    def SerializeUint8Component(f: MemoryStream, value):
+        return f.uint8(value)
+
+    def SerializeVec2Uint8Component(f: MemoryStream, value):
+        return f.vec2_uint8(value)
+
+    def SerializeVec3Uint8Component(f: MemoryStream, value):
+        return f.vec3_uint8(value)
+
     def SerializeVec4Uint8Component(f: MemoryStream, value):
         return f.vec4_uint8(value)
         
@@ -1394,6 +1415,9 @@ class SerializeFunctions:
         else:
             return f.uint32(0)
             
+    def SerializeFloat16Component(f: MemoryStream, value):
+        return f.float16(value)
+
     def SerializeVec2HalfComponent(f: MemoryStream, value):
         return f.vec2_half(value)
     
@@ -1419,21 +1443,29 @@ class StreamComponentType:
     BONE_INDEX = 6
     BONE_WEIGHT = 7
     UNKNOWN_TYPE = -1
-    
+
 class StreamComponentFormat:
     FLOAT = 0
     VEC2_FLOAT = 1
     VEC3_FLOAT = 2
+    VEC4_FLOAT = 3
     RGBA_R8G8B8A8 = 4
-    VEC4_UINT32 = 20 # unconfirmed
-    VEC4_UINT8 = 24
-    VEC4_1010102 = 25
-    UNK_NORMAL = 26
-    VEC2_HALF = 29
-    VEC3_HALF = 30
-    VEC4_HALF = 31
+    UINT32 = 21
+    VEC2_UINT32 = 22
+    VEC3_UINT32 = 23
+    VEC4_UINT32 = 24
+    UINT8 = 25
+    VEC2_UINT8 = 26
+    VEC3_UINT8 = 27
+    VEC4_UINT8 = 28
+    VEC4_1010102 = 29
+    UNK_NORMAL = 30
+    FLOAT16 = 32
+    VEC2_HALF = 33
+    VEC3_HALF = 34
+    VEC4_HALF = 35
     UNKNOWN_TYPE = -1
-            
+
 class FUNCTION_LUTS:
     
     SERIALIZE_MESH_LUT = {
@@ -1451,11 +1483,19 @@ class FUNCTION_LUTS:
         StreamComponentFormat.FLOAT: SerializeFunctions.SerializeFloatComponent,
         StreamComponentFormat.VEC2_FLOAT: SerializeFunctions.SerializeVec2FloatComponent,
         StreamComponentFormat.VEC3_FLOAT: SerializeFunctions.SerializeVec3FloatComponent,
+        StreamComponentFormat.VEC4_FLOAT: SerializeFunctions.SerializeVec4FloatComponent,
         StreamComponentFormat.RGBA_R8G8B8A8: SerializeFunctions.SerializeRGBA8888Component,
+        StreamComponentFormat.UINT32: SerializeFunctions.SerializeUint32Component,
+        StreamComponentFormat.VEC2_UINT32: SerializeFunctions.SerializeVec2Uint32Component,
+        StreamComponentFormat.VEC3_UINT32: SerializeFunctions.SerializeVec3Uint32Component,
         StreamComponentFormat.VEC4_UINT32: SerializeFunctions.SerializeVec4Uint32Component,
+        StreamComponentFormat.UINT8: SerializeFunctions.SerializeUint8Component,
+        StreamComponentFormat.VEC2_UINT8: SerializeFunctions.SerializeVec2Uint8Component,
+        StreamComponentFormat.VEC3_UINT8: SerializeFunctions.SerializeVec3Uint8Component,
         StreamComponentFormat.VEC4_UINT8: SerializeFunctions.SerializeVec4Uint8Component,
         StreamComponentFormat.VEC4_1010102: SerializeFunctions.SerializeVec41010102Component,
         StreamComponentFormat.UNK_NORMAL: SerializeFunctions.SerializeUnkNormalComponent,
+        StreamComponentFormat.FLOAT16: SerializeFunctions.SerializeFloat16Component,
         StreamComponentFormat.VEC2_HALF: SerializeFunctions.SerializeVec2HalfComponent,
         StreamComponentFormat.VEC3_HALF: SerializeFunctions.SerializeVec3HalfComponent,
         StreamComponentFormat.VEC4_HALF: SerializeFunctions.SerializeVec4HalfComponent

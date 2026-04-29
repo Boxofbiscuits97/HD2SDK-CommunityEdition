@@ -112,7 +112,10 @@
         "0fecb336be1d287b": "UF-84 Doubt Killer",
         "81bf25bbdd4624c1": "CPH-26 Commandant",
         "e7449208a97fa22e": "CPG-48 Sapper",
-        "07a2056e7a5f313f": "CPR-80 Bulwark"
+        "07a2056e7a5f313f": "CPR-80 Bulwark",
+        "5fec3757445c4e16": "O-2 Heavy Operator",
+        "f9ced2d898787705": "O-3 Free Spirit",
+        "50038ca035821a74": "O-44 Bonded Pilot"
     },
 
     "Helmet": {
@@ -221,7 +224,10 @@
         "88b7d737b6e62cc0": "UF-84 Doubt Killer",
         "a67993f7af5594d8": "CPH-26 Commandant",
         "d4fb7d61ad409841": "CPG-48 Sapper",
-        "51a7562176a8ac19": "CPR-80 Bulwark"
+        "51a7562176a8ac19": "CPR-80 Bulwark",
+        "5e40404d846b2b00": "O-2 Heavy Operator",
+        "a2999407862595df": "O-3 Free Spirit",
+        "3cf26a29a0012282": "O-44 Bonded Pilot"
     },
 
     "Cape": {
@@ -302,7 +308,10 @@
         "a751b4cd139b0eb3": "Reckoning's Cheer",
         "7caea0a631afeb5f": "Dignity of Toil",
         "1ff9ac94b5d8c7cd": "Crest of the Unsullied",
-        "ab5053cd9f74be7d": "Testament To Attrition"
+        "ab5053cd9f74be7d": "Testament To Attrition",
+        "91b82c8f3aa19bf7": "Watchful Compatriot",
+        "a129aa656628c85a": "Free-Spirited Spangles",
+        "c90bfd2f73908de7": "Diagram of the Noblest Payload"
     },
 
     "Icons": { 
@@ -546,7 +555,8 @@
         "0edad8ddec238bd9": "SMG-32 Reprimand",
         "f230d2d2adcc034a": "SMG-72 Pummeler & SMG-37 Defender",
         "9494c346e564d15f": "StA-11 SMG",
-        "a275324ae43dfd50": "SMG/FLAM-34 Stoker"
+        "a275324ae43dfd50": "SMG/FLAM-34 Stoker",
+        "94eaeaffd878dd6d": "SMG-203 Gallant"
     },
 
     "Shotgun": {
@@ -592,7 +602,8 @@
         "1b006880ac88d1cd": "P-35 Re-Educator",
         "41ce78fe8f96bebe": "P-72 Crisper",
         "9effc1c882578baf": "PLAS-15 Loyalist",
-        "2350348a9acf49c4": "SG-22 Bushwhacker"
+        "2350348a9acf49c4": "SG-22 Bushwhacker",
+        "64c37a90c0d906de": "P-33 Missile Pistol"
     },
 
     "Melee": {
@@ -643,7 +654,8 @@
         "70d708e5fd627493": "S-11 Speargun",
         "93fa804787551c15": "SH-51 Directional Shield",
         "5795e99a988d10b7": "StA-X3 W.A.S.P. Launcher",
-        "750605cfc0173701": "TX-41 Sterilizer"
+        "750605cfc0173701": "TX-41 Sterilizer",
+        "b75f652bed19144a": "MGX-42 Bullet Storm"
     },
 
     "Unreleased": {

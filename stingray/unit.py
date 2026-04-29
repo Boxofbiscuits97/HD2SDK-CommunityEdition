@@ -1406,17 +1406,17 @@ class SerializeFunctions:
     def SerializeVec4Uint32Component(f: MemoryStream, value):
         return f.vec4_uint32(value)
     
-    def SerializeInt8Component(f: MemoryStream, value):
-        return f.int8(value)
+    def SerializeUint8Component(f: MemoryStream, value):
+        return f.uint8(value)
 
-    def SerializeVec2Int8Component(f: MemoryStream, value):
-        return f.vec2_int8(value)
+    def SerializeVec2Uint8Component(f: MemoryStream, value):
+        return f.vec2_uint8(value)
 
-    def SerializeVec3Int8Component(f: MemoryStream, value):
-        return f.vec3_int8(value)
+    def SerializeVec3Uint8Component(f: MemoryStream, value):
+        return f.vec3_uint8(value)
 
-    def SerializeVec4Int8Component(f: MemoryStream, value):
-        return f.vec4_int8(value)
+    def SerializeVec4Uint8Component(f: MemoryStream, value):
+        return f.vec4_uint8(value)
         
     def SerializeVec41010102Component(f: MemoryStream, value):
         if f.IsReading():
@@ -1471,10 +1471,10 @@ class StreamComponentFormat:
     VEC2_UINT32 = 22
     VEC3_UINT32 = 23
     VEC4_UINT32 = 24
-    INT8 = 25
-    VEC2_INT8 = 26
-    VEC3_INT8 = 27
-    VEC4_INT8 = 28
+    UINT8 = 25
+    VEC2_UINT8 = 26
+    VEC3_UINT8 = 27
+    VEC4_UINT8 = 28
     VEC4_1010102 = 29
     UNK_NORMAL = 30
     FLOAT16 = 32
@@ -1493,10 +1493,10 @@ class StreamComponentFormat_OLD_UNITS:
     VEC2_UINT32 = 18
     VEC3_UINT32 = 19
     VEC4_UINT32 = 20
-    INT8 = 21
-    VEC2_INT8 = 22
-    VEC3_INT8 = 23
-    VEC4_INT8 = 24
+    UINT8 = 21
+    VEC2_UINT8 = 22
+    VEC3_UINT8 = 23
+    VEC4_UINT8 = 24
     VEC4_1010102 = 25
     UNK_NORMAL = 26
     FLOAT16 = 28
@@ -1528,10 +1528,10 @@ class FUNCTION_LUTS:
         StreamComponentFormat.VEC2_UINT32: SerializeFunctions.SerializeVec2Uint32Component,
         StreamComponentFormat.VEC3_UINT32: SerializeFunctions.SerializeVec3Uint32Component,
         StreamComponentFormat.VEC4_UINT32: SerializeFunctions.SerializeVec4Uint32Component,
-        StreamComponentFormat.INT8: SerializeFunctions.SerializeInt8Component,
-        StreamComponentFormat.VEC2_INT8: SerializeFunctions.SerializeVec2Int8Component,
-        StreamComponentFormat.VEC3_INT8: SerializeFunctions.SerializeVec3Int8Component,
-        StreamComponentFormat.VEC4_INT8: SerializeFunctions.SerializeVec4Int8Component,
+        StreamComponentFormat.UINT8: SerializeFunctions.SerializeUint8Component,
+        StreamComponentFormat.VEC2_UINT8: SerializeFunctions.SerializeVec2Uint8Component,
+        StreamComponentFormat.VEC3_UINT8: SerializeFunctions.SerializeVec3Uint8Component,
+        StreamComponentFormat.VEC4_UINT8: SerializeFunctions.SerializeVec4Uint8Component,
         StreamComponentFormat.VEC4_1010102: SerializeFunctions.SerializeVec41010102Component,
         StreamComponentFormat.UNK_NORMAL: SerializeFunctions.SerializeUnkNormalComponent,
         StreamComponentFormat.FLOAT16: SerializeFunctions.SerializeFloat16Component,
@@ -1550,10 +1550,10 @@ class FUNCTION_LUTS:
         StreamComponentFormat_OLD_UNITS.VEC2_UINT32: SerializeFunctions.SerializeVec2Uint32Component,
         StreamComponentFormat_OLD_UNITS.VEC3_UINT32: SerializeFunctions.SerializeVec3Uint32Component,
         StreamComponentFormat_OLD_UNITS.VEC4_UINT32: SerializeFunctions.SerializeVec4Uint32Component,
-        StreamComponentFormat_OLD_UNITS.INT8: SerializeFunctions.SerializeInt8Component,
-        StreamComponentFormat_OLD_UNITS.VEC2_INT8: SerializeFunctions.SerializeVec2Int8Component,
-        StreamComponentFormat_OLD_UNITS.VEC3_INT8: SerializeFunctions.SerializeVec3Int8Component,
-        StreamComponentFormat_OLD_UNITS.VEC4_INT8: SerializeFunctions.SerializeVec4Int8Component,
+        StreamComponentFormat_OLD_UNITS.UINT8: SerializeFunctions.SerializeUint8Component,
+        StreamComponentFormat_OLD_UNITS.VEC2_UINT8: SerializeFunctions.SerializeVec2Uint8Component,
+        StreamComponentFormat_OLD_UNITS.VEC3_UINT8: SerializeFunctions.SerializeVec3Uint8Component,
+        StreamComponentFormat_OLD_UNITS.VEC4_UINT8: SerializeFunctions.SerializeVec4Uint8Component,
         StreamComponentFormat_OLD_UNITS.VEC4_1010102: SerializeFunctions.SerializeVec41010102Component,
         StreamComponentFormat_OLD_UNITS.UNK_NORMAL: SerializeFunctions.SerializeUnkNormalComponent,
         StreamComponentFormat_OLD_UNITS.FLOAT16: SerializeFunctions.SerializeFloat16Component,

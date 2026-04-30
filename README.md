@@ -28,7 +28,9 @@ The developers of the original version of the tool have stated that they are unl
 Download the [latest release build](https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/releases) and install it into [Blender 4.0 to 4.3](https://www.blender.org/download/). 
 - Windows is the only officially supported operating system.
 - Linux has also been reported to work via Wine.
-  - To use on linux without wine, extract the latest linux build of [this texconv implementation](https://github.com/matyalatte/Texconv-Custom-DLL) to the `deps` folder in the addon's zip before installing.
+  - To use on linux without wine, extract the v0.4.1 linux build of [this texconv implementation](https://github.com/matyalatte/Texconv-Custom-DLL/releases/tag/v0.4.1) to the `deps` folder in the addon's zip before installing. 
+    - Texconv builds later than v0.4.1 do not work.
+    - This texconv build depends on libpng and libjpeg. Your distro probably already installed them.
 
 ## Usage
 We've taken the time to write a tutorial focused on armor modding which should assist those already moderately familiar with mesh modding and Blender in general. Unfortunately we do not have the means to provide constant support to anyone new to either, but in the event anyone should write a more in-depth tutorial, create a video tutorial, etc, we would be happy to feature it here if it's brought to our attention.
@@ -48,9 +50,9 @@ To get a more curated list of specific guides, join the [Community Discord](http
 > This is a tutorial about developing in [VSCode](https://code.visualstudio.com/). If you do not have VSCode, install it [Here](https://code.visualstudio.com/).
 
 ### Getting Started
-1. Install [Python](https://www.python.org/downloads/) `3.11.9`[^1] or later.
+1. Assure the **SDK is uninstalled**
+2. Install [Python](https://www.python.org/downloads/) `3.11.9`[^1] or later.
 [^1]: Minimum version used by blender 4.0-4.3, so this or anything newer will work
-2. Assure the **SDK is uninstalled**
 3. [Create a fork of the repository](https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/fork)
 4. Copy the link to your fork
 5. Open VSCode and go to the Source Control Tab
@@ -80,7 +82,7 @@ To get a more curated list of specific guides, join the [Community Discord](http
         - Blender doesn't fully adhere to the Python standard, and this was the last version that supports Blender's implementaion
 
 
-### Manual Hot Reloading the Blender Addon
+### Hot reloading the blender addon
 1. In blender go to `Edit > Preferences > Keymap`
 2. Unfold the window section
 3. Scroll down and `Add New`

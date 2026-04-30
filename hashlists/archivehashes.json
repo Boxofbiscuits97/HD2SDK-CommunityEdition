@@ -38,9 +38,12 @@
         "784acdd4158a9a42": "CM-10 Clinician",
         "b0db7f4f0a11debd": "CM-14 Physician",
         "d7e0e8a6c8ab0e2c": "CM-17 Butcher",
+        "41203170aae394c0": "CM-21 Trench Paramedic",
+        "81bf25bbdd4624c1": "CPH-26 Commandant",
+        "e7449208a97fa22e": "CPG-48 Sapper",
+        "07a2056e7a5f313f": "CPR-80 Bulwark",
         "d451ab9c17f64b19": "CW-4 Arctic Ranger",
         "78c4f1839dea282d": "CW-9 White Wolf",
-        "41203170aae394c0": "CM-21 Trench Paramedic",
         "1d9e8acfc3ee3ace": "CW-22 Kodiak",
         "7b19ad7f21d347b4": "CW-36 Winter Warrior",
         "3d8cf2088ed56091": "DP-00 Tactical",
@@ -74,6 +77,9 @@
         "4dad43d7cc148a49": "IE-3 Martyr",
         "d0de7721e4a47990": "IE-12 Righteous",
         "0a15a5b5d8695e47": "IE-57 Hell-Bent",
+        "5fec3757445c4e16": "O-2 Heavy Operator",
+        "f9ced2d898787705": "O-3 Free Spirit",
+        "50038ca035821a74": "O-44 Bonded Pilot",
         "40faf112f20318ea": "PH-9 Predator",
         "d8cd425483086455": "PH-56 Jaguar",
         "aac562a77d283684": "PH-202 Twigsnapper",
@@ -109,13 +115,7 @@
         "19b5a68e61d7a9d7": "UF-16 Inspector",
         "871290e9d5703851": "UF-50 Bloodhound",
         "91033cfaaad4ad18": "UF-84 Doubt Killer",
-        "0fecb336be1d287b": "UF-84 Doubt Killer",
-        "81bf25bbdd4624c1": "CPH-26 Commandant",
-        "e7449208a97fa22e": "CPG-48 Sapper",
-        "07a2056e7a5f313f": "CPR-80 Bulwark",
-        "5fec3757445c4e16": "O-2 Heavy Operator",
-        "f9ced2d898787705": "O-3 Free Spirit",
-        "50038ca035821a74": "O-44 Bonded Pilot"
+        "0fecb336be1d287b": "UF-84 Doubt Killer"
     },
 
     "Helmet": {
@@ -156,6 +156,9 @@
         "1bf281b613081b05": "CM-14 Physician",
         "22bb11d902251d11": "CM-17 Butcher",
         "fadecbde1e20ad47": "CM-21 Trench Paramedic",
+        "d4fb7d61ad409841": "CPG-48 Sapper",
+        "a67993f7af5594d8": "CPH-26 Commandant",
+        "51a7562176a8ac19": "CPR-80 Bulwark",
         "5f6dbf7fbbccccdd": "CW-4 Arctic Ranger",
         "70335c90463d4368": "CW-9 White Wolf",
         "e9f7da425997f38b": "CW-22 Kodiak",
@@ -189,6 +192,9 @@
         "fea0e08cff101f8e": "IE-3 Martyr",
         "a2f4121316ccdffc": "IE-12 Righteous",
         "37882724fe5a136e": "IE-57 Hell-Bent",
+        "5e40404d846b2b00": "O-2 Heavy Operator",
+        "a2999407862595df": "O-3 Free Spirit",
+        "3cf26a29a0012282": "O-44 Bonded Pilot",
         "f0daae91a2027fd7": "PH-9 Predator",
         "5c82005edd85558c": "PH-56 Jaguar",
         "0c7ecd8156d49fe9": "PH-202 Twigsnapper",
@@ -221,13 +227,7 @@
         "fb025c06b0408e5f": "UF-16 Inspector",
         "15dcd137ebe874ed": "UF-50 Bloodhound",
         "292b09dac80ce1de": "UF-84 Doubt Killer",
-        "88b7d737b6e62cc0": "UF-84 Doubt Killer",
-        "a67993f7af5594d8": "CPH-26 Commandant",
-        "d4fb7d61ad409841": "CPG-48 Sapper",
-        "51a7562176a8ac19": "CPR-80 Bulwark",
-        "5e40404d846b2b00": "O-2 Heavy Operator",
-        "a2999407862595df": "O-3 Free Spirit",
-        "3cf26a29a0012282": "O-44 Bonded Pilot"
+        "88b7d737b6e62cc0": "UF-84 Doubt Killer"
     },
 
     "Cape": {
@@ -583,8 +583,8 @@
     "Energy-Based": {
         "55938279f6ef8664": "ARC-12 Blitzer",
         "3a49b4448eaa94fe": "LAS-5 Scythe",
+        "f79b65e482594bef": "LAS-13 Trident",
         "6db0c562c2bc10b3": "LAS-16 Sickle",
-        "f79b65e482594bef": "LAS-16 Trident",
         "7f927f50fa6c50e8": "LAS-17 Double-Edge Sickle",
         "c51f160470b34ae3": "PLAS-1 Scorcher & PLAS-101 Purifier",
         "351506bb55187cf9": "PLAS-39 Accelerator",
@@ -602,11 +602,11 @@
         "b29a2fa06fdd99d2": "GP-31 Grenade Pistol",
         "82dcd83d81a385f3": "LAS-7 Dagger, LAS-58 Talon",
         "2844da91583db0f4": "P-11 Stim Pistol",
+        "64c37a90c0d906de": "P-33 Missile Pistol",
         "1b006880ac88d1cd": "P-35 Re-Educator",
         "41ce78fe8f96bebe": "P-72 Crisper",
         "9effc1c882578baf": "PLAS-15 Loyalist",
-        "2350348a9acf49c4": "SG-22 Bushwhacker",
-        "64c37a90c0d906de": "P-33 Missile Pistol"
+        "2350348a9acf49c4": "SG-22 Bushwhacker"
     },
 
     "Melee": {
@@ -650,6 +650,7 @@
         "b2c627b3ba7e0c0a": "M-1000 Maxigun",
         "c024a2e8ae639757": "MG-43 Machine Gun",
         "902c54afb4ed396f": "MG-206 Heavy Machine Gun",
+        "b75f652bed19144a": "MGX-42 Bullet Storm",
         "c0052e5b38e18c33": "MLS-4X Commando",
         "a7b23b55209766ae": "PLAS-45 Epoch",
         "f7646e79610c124d": "RL-77 Airburst Rocket Launcher",
@@ -657,8 +658,7 @@
         "70d708e5fd627493": "S-11 Speargun",
         "93fa804787551c15": "SH-51 Directional Shield",
         "5795e99a988d10b7": "StA-X3 W.A.S.P. Launcher",
-        "750605cfc0173701": "TX-41 Sterilizer",
-        "b75f652bed19144a": "MGX-42 Bullet Storm"
+        "750605cfc0173701": "TX-41 Sterilizer"
     },
 
     "Unreleased": {

@@ -3489,6 +3489,7 @@ class SaveStingrayAnimationOperator(Operator):
             return{'CANCELLED'}
         self.report({'INFO'}, f"Saved Animation")
         return {'FINISHED'}
+#endregion
 
 #region Operators: Particles
 class SaveStingrayParticleOperator(Operator):

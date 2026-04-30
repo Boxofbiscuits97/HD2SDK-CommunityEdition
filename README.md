@@ -49,15 +49,38 @@ To get a more curated list of specific guides, join the [Community Discord](http
 > [!NOTE]
 > This is a tutorial about developing in [VSCode](https://code.visualstudio.com/). If you do not have VSCode, install it [Here](https://code.visualstudio.com/).
 
+### Getting Started
 1. Assure the **SDK is uninstalled**
-2. [Create a fork of the repository](https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/fork)
-3. Copy the link to your fork
+2. Install [Python](https://www.python.org/downloads/) `3.11.9`[^1] or later.
+[^1]: Minimum version used by blender 4.0-4.3, so this or anything newer will work
+3. [Create a fork of the repository](https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/fork)
+4. Copy the link to your fork
 5. Open VSCode and go to the Source Control Tab
 6. Click clone repository and paste the link to your fork
 7. Find your Blender Addons folder and choose that as the directory.
    - Example: `C:\Users\<USERNAME>\AppData\Roaming\Blender Foundation\Blender\4.0\scripts\addons`
-9. Open Blender and navigate to preferences and enable the addon
-10. Now the project is setup and changes can be made and will reflect each time blender is restarted
+8. Open Blender and navigate to preferences and enable the addon
+9. Now the project is setup and changes can be made and will reflect each time blender is restarted
+
+### Recommendations for Development
+- [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) allows VSCode to work properly with Python
+    1. Install from VSCode extion page
+- [fake-bpy-module](https://github.com/nutti/fake-bpy-module) allows VSCode to properly display scripts hints for Blender Addon
+    1. Install the pyton module with `pip install fake-bpy-module` or `pip install fake-bpy-module-latest`
+- [Blender Development](https://marketplace.visualstudio.com/items?itemName=JacquesLucke.blender-development) allows for hot reload by saving the a current file, and easier live debugging
+    1. Install the addon and enable the setting extention setting `Reload addon in Blender when a document is saved`
+    2. Open `__init__.py` and then open the command palette (ctrl+shipt+p) and run the command `Blender: Start`
+    3. Select the Blender excutible when prompted
+        - Example: `C:\Program Files\Blender Foundation\Blender 4.0\blender.exe`
+    4. For future just open `__init__.py` and run `Blender: Run Script`
+   
+> [!NOTE]
+> Depending on your specific enviroment, it might be nessisary to add write persmions to the `C:\Program Files\Blender Foundation\Blender 4.0\4.0\python` for the Users local group
+    
+- [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) allows for static type checking
+    1. Install Pylance version `2023.12.1`
+        - Blender doesn't fully adhere to the Python standard, and this was the last version that supports Blender's implementaion
+
 
 ### Hot reloading the blender addon
 1. In blender go to `Edit > Preferences > Keymap`

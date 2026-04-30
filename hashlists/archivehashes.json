@@ -312,10 +312,6 @@
         "91b82c8f3aa19bf7": "Watchful Compatriot",
         "a129aa656628c85a": "Free-Spirited Spangles",
         "c90bfd2f73908de7": "Diagram of the Noblest Payload"
-        "ab5053cd9f74be7d": "Testament To Attrition",
-        "91b82c8f3aa19bf7": "Watchful Compatriot",
-        "a129aa656628c85a": "Free-Spirited Spangles",
-        "c90bfd2f73908de7": "Diagram of the Noblest Payload"
     },
 
     "Icons": { 
@@ -462,50 +458,6 @@
 		"5e47518596f8175d": "Cyborgs",
 		"b9a08b6ab841d83e": "Vox Engine"
 	  },
-	"Automaton": {
-		"62ec9c912c88c15d": "Annihilator Tank",
-		"1a3dc966179bd5a4": "Barrager Tank",
-		"62540171a97848cf": "Berserker",
-		"9dedbfc1b397d535": "Brawler",
-		"eada82fbe2b1a689": "Commissar",
-		"4bec69547a558869": "Devastator",
-		"fdf011daecf24312": "Dropship",
-		"a2a2eb28bc511575": "Factory Strider",
-		"27cb3df21f6599fd": "Gunship",
-		"eaa001bca299717e": "Heavy Devastator",
-		"eda39e568ad5f302": "Hulk Bruiser",
-		"086e54bc88865de2": "Hulk Obliterator",
-		"499591b12328acbd": "Hulk Scorcher",
-		"881270fab24e80a4": "MG Raider",
-		"7f37f5671f6cdbb5": "Marauder",
-		"2c8d8cc831d0c732": "Reinforced Scout Strider",
-		"3cf45796343b36df": "Rocket Devastator",
-		"079529fe7dd7c0cb": "Rocket Raider",
-		"094394c2a2c22f36": "Scout Strider",
-		"063a5b895ed482e6": "Shredder Tank",
-		"77b1dfa352e8cbed": "Trooper",
-		"031c90406564341b": "War Strider"
-	  },
-	"Automaton: Jet Brigade": {
-		"387a99b22d643bb1": "Assault Raider",
-		"fcaeec7dae9455c9": "Commissar",
-		"98ab3235f841d3c4": "Devastator",
-		"6f9806c17c09a304": "Hulk Bruiser",
-		"11d2a5cf72e88043": "Hulk Scorcher",
-		"9737e8ff4cf745fe": "MG Raider",
-		"4555c6743ced97e3": "Trooper"
-	  },
-	"Automaton: Incineration Corps": {
-		"f3f0536e7e34ad11": "Conflagration Devastator",
-		"7c33f358689e2c74": "Hulk Firebomber",
-		"88e1a0e04fa84f73": "Incendiary MG Devastator",
-		"800b2c57b7ec4d9d": "Incendiary Rocket Raider",
-		"7a8ede61a5d379fd": "Pyro Trooper"
-	  },
-	"Automaton: Cyborg Legion": {
-		"5e47518596f8175d": "Cyborgs",
-		"b9a08b6ab841d83e": "Vox Engine"
-	  },
     
     "Terminid": {
         "855b36a0321f7106": "Bile Spewer",
@@ -548,10 +500,7 @@
         "e72d3e9b05c3db0b": "EXO-49 Emancipator Exosuit",
         "0a4bd8a1833f11b2": "EXO-51 Lumberer Exosuit",
         "7de417db7552d9fc": "EXO-55 Breakthrough Exosuit",
-        "0a4bd8a1833f11b2": "EXO-51 Lumberer Exosuit",
-        "7de417db7552d9fc": "EXO-55 Breakthrough Exosuit",
         "0bdf199f7ac14f43": "M-102 Fast Recon Vehicle (FRV)",
-        "68ebdce3f7498179": "TD-220 Bastion MK XVI (Tank)",
         "68ebdce3f7498179": "TD-220 Bastion MK XVI (Tank)",
         "9aac8a3a538ce3b7": "Pelican-1"
     },
@@ -611,8 +560,6 @@
         "9494c346e564d15f": "StA-11 SMG",
         "a275324ae43dfd50": "SMG/FLAM-34 Stoker",
         "94eaeaffd878dd6d": "SMG-203 Gallant"
-        "a275324ae43dfd50": "SMG/FLAM-34 Stoker",
-        "94eaeaffd878dd6d": "SMG-203 Gallant"
     },
 
     "Shotgun": {
@@ -659,8 +606,7 @@
         "1b006880ac88d1cd": "P-35 Re-Educator",
         "41ce78fe8f96bebe": "P-72 Crisper",
         "9effc1c882578baf": "PLAS-15 Loyalist",
-        "2350348a9acf49c4": "SG-22 Bushwhacker",
-        "64c37a90c0d906de": "P-33 Missile Pistol"
+        "2350348a9acf49c4": "SG-22 Bushwhacker"
     },
 
     "Melee": {
@@ -712,8 +658,7 @@
         "70d708e5fd627493": "S-11 Speargun",
         "93fa804787551c15": "SH-51 Directional Shield",
         "5795e99a988d10b7": "StA-X3 W.A.S.P. Launcher",
-        "750605cfc0173701": "TX-41 Sterilizer",
-        "b75f652bed19144a": "MGX-42 Bullet Storm"
+        "750605cfc0173701": "TX-41 Sterilizer"
     },
 
     "Unreleased": {

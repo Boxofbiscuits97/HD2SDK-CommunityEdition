@@ -42,6 +42,7 @@ class StingrayMeshFile:
         self.UnkPreLightListOffset = 0
         self.WwiseCallbackOffset = 0
         self.LoadMaterialSlotNames = True
+        self.Version = 0
 
     # -- Serialize Mesh -- #
     def Serialize(self, f: MemoryStream, gpu, Global_TocManager, redo_offsets = False, BlenderOpts=None):
@@ -104,7 +105,14 @@ class StingrayMeshFile:
         else: self.CompositeRef = f.uint64(self.CompositeRef)
         self.UnkRef2            = f.uint64(self.UnkRef2)
         self.StateMachineRef    = f.uint64(self.StateMachineRef)
-        self.HeaderData1        = f.uint64(self.HeaderData1)
+        self.HeaderData1        = f.uint32(self.HeaderData1)
+        
+        if f.IsWriting() and self.Version == 10800437:
+            self.Version        = f.uint32(10800438)
+        else:
+            self.Version       = f.uint32(self.Version)
+        
+        print(f"Unit Version: {self.Version}")
         self.UnreversedLODGroupListDataOffset = f.uint32(self.UnreversedLODGroupListDataOffset)
         self.TransformInfoOffset= f.uint32(self.TransformInfoOffset)
         self.LightListOffset    = f.uint32(self.LightListOffset)
@@ -125,11 +133,14 @@ class StingrayMeshFile:
 
         if f.IsReading() and self.MeshInfoOffset == 0:
             if bpy.context.scene.Hd2ToolPanelSettings.SkipMeshImportErrors:
-                PrettyPrint(f"Skipping mesh import due to SkipMeshImportErrors setting.", 'warn')
+                PrettyPrint(f"Skipping mesh import error due to SkipMeshImportErrors setting.", 'warn')
                 return
             raise Exception("Unsupported Mesh Format (No geometry)")
 
         if f.IsReading() and (self.StreamInfoOffset == 0 and self.CompositeRef == 0):
+            if bpy.context.scene.Hd2ToolPanelSettings.SkipMeshImportErrors:
+                PrettyPrint(f"Skipping mesh import error due to SkipMeshImportErrors setting.", 'warn')
+                return
             raise Exception("Unsupported Mesh Format (No buffer stream)")
 
         # Get bones file
@@ -336,7 +347,7 @@ class StingrayMeshFile:
             for stream_idx in range(self.NumStreams):
                 if f.IsReading(): f.seek(self.StreamInfoOffset + self.StreamInfoOffsets[stream_idx])
                 else            : self.StreamInfoOffsets[stream_idx] = f.tell() - self.StreamInfoOffset
-                self.StreamInfoArray[stream_idx] = self.StreamInfoArray[stream_idx].Serialize(f)
+                self.StreamInfoArray[stream_idx] = self.StreamInfoArray[stream_idx].Serialize(f, devUnitVersion=self.Version)
 
         # Mesh Info
         if f.IsReading(): f.seek(self.MeshInfoOffset)
@@ -382,6 +393,9 @@ class StingrayMeshFile:
                 self.StreamInfoOffset = 1
                 gpu = Entry.LoadedData.GpuData
             else:
+                if bpy.context.scene.Hd2ToolPanelSettings.SkipMeshImportErrors:
+                    PrettyPrint(f"Composite mesh file {self.CompositeRef} could not be found. Skipping mesh import error due to SkipMeshImportErrors setting.", 'warn')
+                    return
                 raise Exception(f"Composite mesh file {self.CompositeRef} could not be found")
 
         # Materials
@@ -668,16 +682,16 @@ class StingrayMeshFile:
                         mesh.VertexUVs.append([[0,0] for n in mesh.VertexPositions])
             # make stream components
             Stream_Info.Components = []
-            if HasColors:     Stream_Info.Components.append(StreamComponentInfo("color", "rgba_r8g8b8a8"))
-            if HasPositions:  Stream_Info.Components.append(StreamComponentInfo("position", "vec3_float"))
-            if HasNormals:    Stream_Info.Components.append(StreamComponentInfo("normal", "unk_normal"))
+            if HasColors:     Stream_Info.Components.append(StreamComponentInfo("color", "rgba_r8g8b8a8", devUnitVersion=self.Version))
+            if HasPositions:  Stream_Info.Components.append(StreamComponentInfo("position", "vec3_float", devUnitVersion=self.Version))
+            if HasNormals:    Stream_Info.Components.append(StreamComponentInfo("normal", "unk_normal", devUnitVersion=self.Version))
             for n in range(NumUVs):
-                UVComponent = StreamComponentInfo("uv", "vec2_half")
+                UVComponent = StreamComponentInfo("uv", "vec2_float", devUnitVersion=self.Version)
                 UVComponent.Index = n
                 Stream_Info.Components.append(UVComponent)
-            if IsSkinned:     Stream_Info.Components.append(StreamComponentInfo("bone_weight", "vec4_half"))
+            if IsSkinned:     Stream_Info.Components.append(StreamComponentInfo("bone_weight", "vec4_half", devUnitVersion=self.Version))
             for n in range(NumBoneIndices):
-                BIComponent = StreamComponentInfo("bone_index", "vec4_uint8")
+                BIComponent = StreamComponentInfo("bone_index", "vec4_uint8", devUnitVersion=self.Version)
                 BIComponent.Index = n
                 Stream_Info.Components.append(BIComponent)
             # calculate Stride
@@ -802,7 +816,7 @@ class StreamInfo:
         self.UnkEndingBytes = bytearray(16)
         self.DEV_StreamInfoOffset    = self.DEV_ComponentInfoOffset = 0 # helper vars, not in file
 
-    def Serialize(self, f: MemoryStream):
+    def Serialize(self, f: MemoryStream, devUnitVersion=0):
         self.DEV_StreamInfoOffset = f.tell()
         self.ComponentInfoID = f.uint64(self.ComponentInfoID)
         self.DEV_ComponentInfoOffset = f.tell()
@@ -833,8 +847,8 @@ class StreamInfo:
         # component info
         f.seek(self.DEV_ComponentInfoOffset)
         if f.IsReading():
-            self.Components = [StreamComponentInfo() for n in range(self.NumComponents)]
-        self.Components = [Comp.Serialize(f) for Comp in self.Components]
+            self.Components = [StreamComponentInfo(devUnitVersion=devUnitVersion) for n in range(self.NumComponents)]
+        self.Components = [Comp.Serialize(f, devUnitVersion=devUnitVersion) for Comp in self.Components]
 
         # return
         f.seek(EndOffset)
@@ -1044,16 +1058,18 @@ class CustomizationInfo: # READ ONLY
 
 class StreamComponentInfo:
     
-    def __init__(self, type="position", format="float"):
+    def __init__(self, type="position", format="float", devUnitVersion=0):
+        self.DEVUnitVersion = devUnitVersion
         self.Type   = self.TypeFromName(type)
         self.Format = self.FormatFromName(format)
         self.Index   = 0
         self.Unknown = 0
-    def Serialize(self, f: MemoryStream):
+    def Serialize(self, f: MemoryStream, devUnitVersion=0):
         self.Type      = f.uint32(self.Type)
         self.Format    = f.uint32(self.Format)
         self.Index     = f.uint32(self.Index)
         self.Unknown   = f.uint64(self.Unknown)
+        self.DEVUnitVersion = devUnitVersion
         return self
     def TypeName(self):
         if   self.Type == 0: return "position"
@@ -1075,44 +1091,53 @@ class StreamComponentInfo:
         elif name == "bone_index":  return 6
         elif name == "bone_weight": return 7
         return -1
-    def FormatName(self):
-        # check archive 9102938b4b2aef9d
-        if   self.Format == 0:  return "float"
-        elif self.Format == 1:  return "vec2_float"
-        elif self.Format == 2:  return "vec3_float"
-        elif self.Format == 4:  return "rgba_r8g8b8a8"
-        elif self.Format == 20: return "vec4_uint32" # vec4_uint32 ??
-        elif self.Format == 24: return "vec4_uint8"
-        elif self.Format == 25: return "vec4_1010102"
-        elif self.Format == 26: return "unk_normal"
-        elif self.Format == 29: return "vec2_half"
-        elif self.Format == 31: return "vec4_half" # found in archive 738130362c354ceb->8166218779455159235.mesh
-        return "unknown"
     def FormatFromName(self, name):
-        if   name == "float":         return 0
-        elif name == "vec3_float":    return 2
-        elif name == "rgba_r8g8b8a8": return 4
-        elif name == "vec4_uint32": return 20 # unconfirmed
-        elif name == "vec4_uint8":  return 24
-        elif name == "vec4_1010102":  return 25
-        elif name == "unk_normal":  return 26
-        elif name == "vec2_half":   return 29
-        elif name == "vec4_half":   return 31
-        return -1
+        format = -1
+        if   name == "float":         format = 0
+        elif name == "vec2_float":    format =  1
+        elif name == "vec3_float":    format = 2
+        elif name == "vec4_float":    format = 3
+        elif name == "rgba_r8g8b8a8": format = 4
+        elif name == "vec4_uint32": format = 24
+        elif name == "vec4_uint8":  format = 28
+        elif name == "vec4_1010102":  format = 29
+        elif name == "unk_normal":  format = 30
+        elif name == "vec2_half":   format = 33
+        elif name == "vec4_half":   format = 35
+        if self.DEVUnitVersion == 10800437 and format > 16: format -= 4 # quick and dirty fix for format changes in newer versions of the unit file, this is really gross and should be fixed properly at some point 
+        return format
     def GetSize(self):
+        if self.DEVUnitVersion == 10800437:
+                if   self.Format == 0:  return 4
+                elif self.Format == 1:  return 8
+                elif self.Format == 2:  return 12
+                elif self.Format == 3:  return 16
+                elif self.Format == 4:  return 4
+                elif self.Format == 20: return 16
+                elif self.Format == 24: return 4
+                elif self.Format == 25: return 4
+                elif self.Format == 26: return 4
+                elif self.Format == 29: return 4
+                elif self.Format == 31: return 8
+                raise Exception("Unit file version: " + str(self.DEVUnitVersion) + " Cannot get size of unknown vertex format: "+str(self.Format))
         if   self.Format == 0:  return 4
+        elif self.Format == 1:  return 8
         elif self.Format == 2:  return 12
+        elif self.Format == 3:  return 16
         elif self.Format == 4:  return 4
-        elif self.Format == 20: return 16
-        elif self.Format == 24: return 4
-        elif self.Format == 25: return 4
-        elif self.Format == 26: return 4
+        elif self.Format == 24: return 16
+        elif self.Format == 28: return 4
         elif self.Format == 29: return 4
-        elif self.Format == 31: return 8
+        elif self.Format == 30: return 4
+        elif self.Format == 33: return 4
+        elif self.Format == 35: return 8
         raise Exception("Cannot get size of unknown vertex format: "+str(self.Format))
     def SerializeComponent(self, f: MemoryStream, value):
         try:
-            serialize_func = FUNCTION_LUTS.SERIALIZE_COMPONENT_LUT[self.Format]
+            if self.DEVUnitVersion == 10800437:
+                serialize_func = FUNCTION_LUTS.SERIALIZE_COMPONENT_LUT_OLD_UNITS[self.Format]
+            else:
+                serialize_func = FUNCTION_LUTS.SERIALIZE_COMPONENT_LUT[self.Format]
             return serialize_func(f, value)
         except:
             raise Exception("Cannot serialize unknown vertex format: "+str(self.Format))
@@ -1204,7 +1229,7 @@ class RawMaterialClass:
                 try:
                     self.ShortID = Global_MaterialSlotNames[unit_id][self.MatID][index]
                 except (KeyError, IndexError):
-                    PrettyPrint(f"Unable to find material slot for material {name} with material count {index} for unit {unit_id}, using random material slot name")
+                    PrettyPrint(f"Unable to find material slot for material {name} with material count {index} for unit {unit_id}, using random material slot name", 'warn')
                     self.ShortID = random.randint(1, 0xffffffff)
             except:
                 raise Exception("Material name must be a number")
@@ -1351,6 +1376,9 @@ class SerializeFunctions:
     def SerializeVec3FloatComponent(f: MemoryStream, value):
         return f.vec3_float(value)
         
+    def SerializeVec4FloatComponent(f: MemoryStream, value):
+        return f.vec4_float(value)
+        
     def SerializeRGBA8888Component(f: MemoryStream, value):
         if f.IsReading():
             value = f.vec4_uint8([0,0,0,0])
@@ -1365,10 +1393,28 @@ class SerializeFunctions:
             a = min(255, int(value[3]*255))
             value = f.vec4_uint8([r,g,b,a])
         return value
-        
+    
+    def SerializeUint32Component(f: MemoryStream, value):
+        return f.uint32(value)
+
+    def SerializeVec2Uint32Component(f: MemoryStream, value):
+        return f.vec2_uint32(value)
+    
+    def SerializeVec3Uint32Component(f: MemoryStream, value):
+        return f.vec3_uint32(value)
+
     def SerializeVec4Uint32Component(f: MemoryStream, value):
         return f.vec4_uint32(value)
-        
+    
+    def SerializeUint8Component(f: MemoryStream, value):
+        return f.uint8(value)
+
+    def SerializeVec2Uint8Component(f: MemoryStream, value):
+        return f.vec2_uint8(value)
+
+    def SerializeVec3Uint8Component(f: MemoryStream, value):
+        return f.vec3_uint8(value)
+
     def SerializeVec4Uint8Component(f: MemoryStream, value):
         return f.vec4_uint8(value)
         
@@ -1386,9 +1432,15 @@ class SerializeFunctions:
         else:
             return f.uint32(0)
             
+    def SerializeFloat16Component(f: MemoryStream, value):
+        return f.float16(value)
+
     def SerializeVec2HalfComponent(f: MemoryStream, value):
         return f.vec2_half(value)
-        
+    
+    def SerializeVec3HalfComponent(f: MemoryStream, value):
+        return f.vec3_half(value)
+    
     def SerializeVec4HalfComponent(f: MemoryStream, value):
         if isinstance(value, float):
             return f.vec4_half([value,value,value,value])
@@ -1408,20 +1460,51 @@ class StreamComponentType:
     BONE_INDEX = 6
     BONE_WEIGHT = 7
     UNKNOWN_TYPE = -1
-    
+
 class StreamComponentFormat:
     FLOAT = 0
     VEC2_FLOAT = 1
     VEC3_FLOAT = 2
+    VEC4_FLOAT = 3
     RGBA_R8G8B8A8 = 4
-    VEC4_UINT32 = 20 # unconfirmed
+    UINT32 = 21
+    VEC2_UINT32 = 22
+    VEC3_UINT32 = 23
+    VEC4_UINT32 = 24
+    UINT8 = 25
+    VEC2_UINT8 = 26
+    VEC3_UINT8 = 27
+    VEC4_UINT8 = 28
+    VEC4_1010102 = 29
+    UNK_NORMAL = 30
+    FLOAT16 = 32
+    VEC2_HALF = 33
+    VEC3_HALF = 34
+    VEC4_HALF = 35
+    UNKNOWN_TYPE = -1
+
+class StreamComponentFormat_OLD_UNITS:
+    FLOAT = 0
+    VEC2_FLOAT = 1
+    VEC3_FLOAT = 2
+    VEC4_FLOAT = 3
+    RGBA_R8G8B8A8 = 4
+    UINT32 = 17
+    VEC2_UINT32 = 18
+    VEC3_UINT32 = 19
+    VEC4_UINT32 = 20
+    UINT8 = 21
+    VEC2_UINT8 = 22
+    VEC3_UINT8 = 23
     VEC4_UINT8 = 24
     VEC4_1010102 = 25
     UNK_NORMAL = 26
+    FLOAT16 = 28
     VEC2_HALF = 29
+    VEC3_HALF = 30
     VEC4_HALF = 31
     UNKNOWN_TYPE = -1
-            
+
 class FUNCTION_LUTS:
     
     SERIALIZE_MESH_LUT = {
@@ -1439,13 +1522,44 @@ class FUNCTION_LUTS:
         StreamComponentFormat.FLOAT: SerializeFunctions.SerializeFloatComponent,
         StreamComponentFormat.VEC2_FLOAT: SerializeFunctions.SerializeVec2FloatComponent,
         StreamComponentFormat.VEC3_FLOAT: SerializeFunctions.SerializeVec3FloatComponent,
+        StreamComponentFormat.VEC4_FLOAT: SerializeFunctions.SerializeVec4FloatComponent,
         StreamComponentFormat.RGBA_R8G8B8A8: SerializeFunctions.SerializeRGBA8888Component,
+        StreamComponentFormat.UINT32: SerializeFunctions.SerializeUint32Component,
+        StreamComponentFormat.VEC2_UINT32: SerializeFunctions.SerializeVec2Uint32Component,
+        StreamComponentFormat.VEC3_UINT32: SerializeFunctions.SerializeVec3Uint32Component,
         StreamComponentFormat.VEC4_UINT32: SerializeFunctions.SerializeVec4Uint32Component,
+        StreamComponentFormat.UINT8: SerializeFunctions.SerializeUint8Component,
+        StreamComponentFormat.VEC2_UINT8: SerializeFunctions.SerializeVec2Uint8Component,
+        StreamComponentFormat.VEC3_UINT8: SerializeFunctions.SerializeVec3Uint8Component,
         StreamComponentFormat.VEC4_UINT8: SerializeFunctions.SerializeVec4Uint8Component,
         StreamComponentFormat.VEC4_1010102: SerializeFunctions.SerializeVec41010102Component,
         StreamComponentFormat.UNK_NORMAL: SerializeFunctions.SerializeUnkNormalComponent,
+        StreamComponentFormat.FLOAT16: SerializeFunctions.SerializeFloat16Component,
         StreamComponentFormat.VEC2_HALF: SerializeFunctions.SerializeVec2HalfComponent,
+        StreamComponentFormat.VEC3_HALF: SerializeFunctions.SerializeVec3HalfComponent,
         StreamComponentFormat.VEC4_HALF: SerializeFunctions.SerializeVec4HalfComponent
+    }
+
+    SERIALIZE_COMPONENT_LUT_OLD_UNITS = {
+        StreamComponentFormat_OLD_UNITS.FLOAT: SerializeFunctions.SerializeFloatComponent,
+        StreamComponentFormat_OLD_UNITS.VEC2_FLOAT: SerializeFunctions.SerializeVec2FloatComponent,
+        StreamComponentFormat_OLD_UNITS.VEC3_FLOAT: SerializeFunctions.SerializeVec3FloatComponent,
+        StreamComponentFormat_OLD_UNITS.VEC4_FLOAT: SerializeFunctions.SerializeVec4FloatComponent,
+        StreamComponentFormat_OLD_UNITS.RGBA_R8G8B8A8: SerializeFunctions.SerializeRGBA8888Component,
+        StreamComponentFormat_OLD_UNITS.UINT32: SerializeFunctions.SerializeUint32Component,
+        StreamComponentFormat_OLD_UNITS.VEC2_UINT32: SerializeFunctions.SerializeVec2Uint32Component,
+        StreamComponentFormat_OLD_UNITS.VEC3_UINT32: SerializeFunctions.SerializeVec3Uint32Component,
+        StreamComponentFormat_OLD_UNITS.VEC4_UINT32: SerializeFunctions.SerializeVec4Uint32Component,
+        StreamComponentFormat_OLD_UNITS.UINT8: SerializeFunctions.SerializeUint8Component,
+        StreamComponentFormat_OLD_UNITS.VEC2_UINT8: SerializeFunctions.SerializeVec2Uint8Component,
+        StreamComponentFormat_OLD_UNITS.VEC3_UINT8: SerializeFunctions.SerializeVec3Uint8Component,
+        StreamComponentFormat_OLD_UNITS.VEC4_UINT8: SerializeFunctions.SerializeVec4Uint8Component,
+        StreamComponentFormat_OLD_UNITS.VEC4_1010102: SerializeFunctions.SerializeVec41010102Component,
+        StreamComponentFormat_OLD_UNITS.UNK_NORMAL: SerializeFunctions.SerializeUnkNormalComponent,
+        StreamComponentFormat_OLD_UNITS.FLOAT16: SerializeFunctions.SerializeFloat16Component,
+        StreamComponentFormat_OLD_UNITS.VEC2_HALF: SerializeFunctions.SerializeVec2HalfComponent,
+        StreamComponentFormat_OLD_UNITS.VEC3_HALF: SerializeFunctions.SerializeVec3HalfComponent,
+        StreamComponentFormat_OLD_UNITS.VEC4_HALF: SerializeFunctions.SerializeVec4HalfComponent
     }
 
 def AddMaterialToBlend_EMPTY(ID):

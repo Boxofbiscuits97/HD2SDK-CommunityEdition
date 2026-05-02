@@ -1,0 +1,30 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: 'HD2SDK-CommunityEdition'
+
+      - name: Create zip archive
+        run: |
+          zip -r HD2SDK-CommunityEdition${{ github.ref_name }}.zip HD2SDK-CommunityEdition \
+            -x "*.git/*" \
+            -x "*.github/*" \
+            -x "*.gitignore" \
+            -x "*README.md"
+
+      - name: Upload zip to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HD2SDK-CommunityEdition${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

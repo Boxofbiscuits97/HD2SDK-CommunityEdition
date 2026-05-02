@@ -2273,6 +2273,28 @@ class NextArchiveOperator(Operator):
                 bpy.context.scene.Hd2ToolPanelSettings.LoadedArchives = Global_TocManager.LoadedArchives[nextIndex].Name
                 return {'FINISHED'}
         return {'CANCELLED'}
+
+class LoadPlayerAvatarOperator(Operator):
+    bl_label = "Import Player Avatar"
+    bl_description = "Imports the Player Avatar Unit"
+    bl_idname = "helldiver2.archive_import_avatar"
+
+    def execute(self, context):
+        avatar_archive_id = "18235e0c9ec0e636"
+        avatar_entry_id = 5556372446766824087
+        path = Global_gamepath + avatar_archive_id
+        if not os.path.exists(Global_gamepath):
+            self.report({'ERROR'}, "Current Filepath is Invalid. Change this in the Settings")
+            context.scene.Hd2ToolPanelSettings.MenuExpanded = True
+            return{'CANCELLED'}
+        Global_TocManager.LoadArchive(path, True, False)
+        Global_TocManager.Load(avatar_entry_id, UnitID)
+
+        # Redraw
+        for area in context.screen.areas:
+            if area.type == "VIEW_3D": area.tag_redraw()
+        
+        return{'FINISHED'}
 #endregion
 
 #region Operators: Entries
@@ -4803,6 +4825,7 @@ class HellDivers2ToolsPanel(Panel):
         row.operator("helldiver2.github", icon='URL', text= "")
         row = layout.row(); row = layout.row()
         row.operator("helldiver2.archive_import_default", icon= 'SOLO_ON', text="")
+        row.operator("helldiver2.archive_import_avatar", icon= 'OUTLINER_OB_ARMATURE', text="")
         row.operator("helldiver2.search_archives", icon= 'VIEWZOOM')
         row.operator("helldiver2.archive_unloadall", icon= 'FILE_REFRESH', text="")
         row = layout.row()
@@ -5366,6 +5389,7 @@ classes = (
     SetBoneRagdollOperator,
     AddLightOperator,
     ViewChangelogOperator,
+    LoadPlayerAvatarOperator,
 )
 
 Global_TocManager = TocManager()

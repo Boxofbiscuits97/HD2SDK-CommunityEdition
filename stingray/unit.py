@@ -6,6 +6,9 @@ import bpy
 import random
 import bmesh
 
+from .bones import StingrayBones
+from .state_machine import StingrayStateMachine
+
 from ..utils.memoryStream import MemoryStream, MakeTenBitUnsigned, TenBitUnsigned
 from ..utils.logger import PrettyPrint
 from ..utils.hashing import murmur32_hash
@@ -2191,7 +2194,7 @@ def NameFromMesh(mesh, id, customization_info, bone_names, use_sufix=True):
 
     return name
 
-def CreateModel(stingray_unit, id, Global_BoneNames, bones_entry, state_machine_entry):
+def CreateModel(stingray_unit: StingrayMeshFile, id: int, Global_BoneNames: dict, bones_entry: StingrayBones, state_machine_entry: StingrayStateMachine):
     model, customization_info, bone_names, transform_info, bone_info, lights = stingray_unit.RawMeshes, stingray_unit.CustomizationInfo, stingray_unit.BoneNames, stingray_unit.TransformInfo, stingray_unit.BoneInfoArray, stingray_unit.LightList
     imported_lights = False
     if len(model) < 1: return

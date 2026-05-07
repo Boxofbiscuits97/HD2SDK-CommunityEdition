@@ -962,7 +962,7 @@ class TocManager():
                 executor.shutdown()
         return toc
     
-    def GetEntryByLoadArchive(self, FileID: int, TypeID: int):
+    def GetEntryByLoadArchive(self, FileID: int, TypeID: int) -> TocEntry:
         return self.GetEntry(FileID, TypeID, SearchAll=True, IgnorePatch=True)
     
     def ArchiveNotEmpty(self, toc):
@@ -1000,7 +1000,7 @@ class TocManager():
 
     #______________________#
     # ---- Entry Code ---- #
-    def GetEntry(self, FileID, TypeID, SearchAll=False, IgnorePatch=False):
+    def GetEntry(self, FileID, TypeID, SearchAll=False, IgnorePatch=False) -> TocEntry:
         # Check Active Patch
         if not IgnorePatch and self.ActivePatch != None:
             Entry = self.ActivePatch.GetEntry(FileID, TypeID)
@@ -1028,7 +1028,7 @@ class TocManager():
         Entry = self.GetEntry(FileID, TypeID, SearchAll)
         if Entry != None: Entry.Load(Reload)
 
-    def Save(self, FileID, TypeID):
+    def Save(self, FileID, TypeID) -> bool:
         Entry = self.GetEntry(FileID, TypeID)
         if Entry == None:
             PrettyPrint(f"Failed to save entry {FileID}")
@@ -1106,7 +1106,7 @@ class TocManager():
             raise Exception("No patch exists, please create one first")
         self.ActivePatch.AddEntry(Entry)
         
-    def AddEntryToPatchID(self, Entry, dest_id):
+    def AddEntryToPatchID(self, Entry, dest_id) -> TocEntry:
         if self.ActivePatch == None:
             raise Exception("No patch exists, please create one first")
             
@@ -1117,7 +1117,7 @@ class TocManager():
             return PatchEntry
         return None
 
-    def AddEntryToPatch(self, FileID, TypeID):
+    def AddEntryToPatch(self, FileID, TypeID) -> TocEntry:
         if self.ActivePatch == None:
             raise Exception("No patch exists, please create one first")
 
@@ -1135,16 +1135,16 @@ class TocManager():
             self.ActivePatch.RemoveEntry(FileID, TypeID)
         return None
 
-    def GetPatchEntry(self, Entry):
+    def GetPatchEntry(self, Entry) -> TocEntry:
         if self.ActivePatch != None:
             return self.ActivePatch.GetEntry(Entry.FileID, Entry.TypeID)
         return None
-    def GetPatchEntry_B(self, FileID, TypeID):
+    def GetPatchEntry_B(self, FileID, TypeID) -> TocEntry:
         if self.ActivePatch != None:
             return self.ActivePatch.GetEntry(FileID, TypeID)
         return None
 
-    def IsInPatch(self, Entry):
+    def IsInPatch(self, Entry) -> bool:
         if self.ActivePatch != None:
             PatchEntry = self.ActivePatch.GetEntry(Entry.FileID, Entry.TypeID)
             if PatchEntry != None: return True

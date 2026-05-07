@@ -2371,6 +2371,35 @@ class StateMachineBlendMaskWeightOperator(Operator):
     
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
+    
+class StateMachineAnimationIDOperator(Operator):
+    bl_label = "Animation ID"
+    bl_idname = "helldiver2.animation_id"
+    bl_description = "Animation ID"
+
+    object_id: bpy.props.StringProperty()
+    animation_id: bpy.props.StringProperty()
+    animation_index: bpy.props.IntProperty()
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "animation_id")
+        
+    def execute(self, context):
+        Entry = Global_TocManager.GetEntry(self.object_id, StateMachineID)
+        if Entry:
+            if self.animation_index < len(Entry.LoadedData.animation_ids):
+                Entry.LoadedData.animation_ids[self.animation_index] = int(self.animation_id)
+            else:
+                self.report({'ERROR'}, f"Animation index {self.animation_index} out of range")
+                return {'CANCELLED'}
+        else:
+            self.report({'ERROR'}, f"Could not find entry for ID: {self.object_id}")
+            return {'CANCELLED'}
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
         
 class StateMachineSaveOperator(Operator):
     bl_label = "Save State Machine"
@@ -4728,7 +4757,25 @@ class HellDivers2ToolsPanel(Panel):
                         op.bone_weight = weight
                         op.blend_mask_index = i
                 i -= 1
-                    
+            
+            row = layout.row()
+            if f"animation_ids" not in Global_Foldouts:
+                Global_Foldouts[f"animation_ids"] = False
+            animation_ids_show = Global_Foldouts[f"animation_ids"]
+            fold_icon = "DOWNARROW_HLT" if animation_ids_show else "RIGHTARROW"
+            row.operator("helldiver2.collapse_section", text=f"Animations", icon=fold_icon, emboss=False).type = f"animation_ids"
+            
+            if animation_ids_show:
+                for k, animation_id in enumerate(state_machine.animation_ids):
+                    row = layout.row()
+                    split = row.split()
+                    text = GetFriendlyNameFromID(animation_id)
+                    split.label(text=text)
+                    op = split.operator("helldiver2.animation_id", text=f"{animation_id}")
+                    op.object_id = str(state_machine_entry.FileID)
+                    op.animation_index = k
+                    op.animation_id = str(animation_id)
+                
             # draw the values for the bone blend masks for each layer
     
     def draw(self, context):
@@ -5417,6 +5464,7 @@ classes = (
     AddLightOperator,
     ViewChangelogOperator,
     LoadPlayerAvatarOperator,
+    StateMachineAnimationIDOperator,
 )
 
 Global_TocManager = TocManager()

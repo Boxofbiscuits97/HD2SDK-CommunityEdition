@@ -3,7 +3,7 @@ class StingrayStateMachine:
     # very complicated, only load the animation IDs from the state machine for now
     
     def __init__(self):
-        self.animation_ids = set()
+        self.animation_ids = []
         self.layer_count = self.layer_data_offset = self.animation_events_count = self.animation_events_offset = self.animation_vars_count = self.animation_vars_offset = 0
         self.blend_mask_count = self.blend_mask_offset = 0
         self.unk = self.unk2 = self.unk_data_00_offset = self.unk_data_00_size = self.unk_data_01_offset = self.unk_data_01_size = self.unk_data_02_offset = self.unk_data_02_size = 0
@@ -117,7 +117,8 @@ class StingrayStateMachine:
         for layer in self.layers:
             for state in layer.states:
                 for animation_id in state.animation_ids:
-                    self.animation_ids.add(animation_id)
+                    if animation_id not in self.animation_ids:
+                        self.animation_ids.append(animation_id)
 
     def save(self, memory_stream):
         offset_start = memory_stream.tell()

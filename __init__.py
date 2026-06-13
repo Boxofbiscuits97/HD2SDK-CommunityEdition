@@ -4460,7 +4460,7 @@ def ChangeSearchString(self, context):
             item.item_visible = not all([flag == 0 for flag in flt_flags])
             break
             
-def ChangeUnitPassword(self, context):
+def ChangePatchPassword(self, context):
     global Global_password
     if self.PatchPassword == "":
         Global_password = 0
@@ -4501,7 +4501,7 @@ class Hd2ToolPanelSettings(PropertyGroup):
 
     # Tools
     EnableTools               : BoolProperty(name="Special Tools", description = "Enable advanced SDK Tools", default = False)
-    PatchPassword   : StringProperty(name="Patch Password", description="Password to use when saving/loading patch files", default="", update=ChangeUnitPassword)
+    PatchPassword   : StringProperty(name="Patch Password", description="Password to use when saving/loading patch files", default="", update=ChangePatchPassword)
     UnloadEmptyArchives       : BoolProperty(name="Unload Empty Archives", description="Unload Archives that do not Contain any Textures, Materials, or Meshes", default = True)
     DeleteOnLoadArchive       : BoolProperty(name="Nuke Files on Archive Load", description="Delete all Textures, Materials, and Meshes in project when selecting a new archive", default = False)
     UnloadPatches             : BoolProperty(name="Unload Previous Patches", description="Unload Previous Patches when bulk loading")

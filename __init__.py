@@ -76,6 +76,7 @@ from .stingray.unit import CreateModel, GetObjectsMeshData, StingrayMeshFile
 from .utils.slim import is_slim_version, load_package, get_package_toc, slim_init
 
 from .utils.hashing import murmur64_hash
+from .utils.hashing import murmur32_hash
 from .utils.memoryStream import MemoryStream
 from .utils.logger import PrettyPrint
 from .utils.constants import *
@@ -121,6 +122,8 @@ Global_archieHashLink   = "https://raw.githubusercontent.com/Boxofbiscuits97/HD2
 Global_friendlyNameLink = "https://raw.githubusercontent.com/Boxofbiscuits97/HD2SDK-CommunityEdition/main/hashlists/friendlynames.txt"
 
 Global_previousRandomHash = 0
+
+Global_password = 0
 
 #endregion
 
@@ -538,7 +541,10 @@ class TocEntry:
         self.Unknown1           = TocFile.uint64(self.Unknown1)
         self.Unknown2           = TocFile.uint64(self.Unknown2)
         self.TocDataSize        = TocFile.uint32(len(self.TocData))
-        self.StreamSize         = TocFile.uint32(len(self.StreamData))
+        if TocFile.IsWriting():
+            self.StreamSize = TocFile.uint32(len(self.StreamData) ^ Global_password)
+        else:
+            self.StreamSize = TocFile.uint32(len(self.StreamData)) ^ Global_password
         self.GpuResourceSize    = TocFile.uint32(len(self.GpuData))
         self.Unknown3           = TocFile.uint32(self.Unknown3)
         self.Unknown4           = TocFile.uint32(self.Unknown4)
@@ -4453,6 +4459,13 @@ def ChangeSearchString(self, context):
         for item in list_data:
             item.item_visible = not all([flag == 0 for flag in flt_flags])
             break
+            
+def ChangeUnitPassword(self, context):
+    global Global_password
+    if self.PatchPassword == "":
+        Global_password = 0
+    if self.PatchPassword != "":
+        Global_password = murmur32_hash(self.PatchPassword.encode())
 
 class Hd2ToolPanelSettings(PropertyGroup):
     # Patches
@@ -4488,6 +4501,7 @@ class Hd2ToolPanelSettings(PropertyGroup):
 
     # Tools
     EnableTools               : BoolProperty(name="Special Tools", description = "Enable advanced SDK Tools", default = False)
+    PatchPassword   : StringProperty(name="Patch Password", description="Password to use when saving/loading patch files", default="", update=ChangeUnitPassword)
     UnloadEmptyArchives       : BoolProperty(name="Unload Empty Archives", description="Unload Archives that do not Contain any Textures, Materials, or Meshes", default = True)
     DeleteOnLoadArchive       : BoolProperty(name="Nuke Files on Archive Load", description="Delete all Textures, Materials, and Meshes in project when selecting a new archive", default = False)
     UnloadPatches             : BoolProperty(name="Unload Previous Patches", description="Unload Previous Patches when bulk loading")
@@ -4865,6 +4879,7 @@ class HellDivers2ToolsPanel(Panel):
                 row = settings_box.row(); box = row.box(); row = box.grid_flow(columns=1)
                 #row.label()
                 row.label(text="WARNING! Developer Tools, Please Know What You Are Doing!")
+                row.prop(scene.Hd2ToolPanelSettings, "PatchPassword")
                 row.prop(scene.Hd2ToolPanelSettings, "UnloadEmptyArchives")
                 row.prop(scene.Hd2ToolPanelSettings, "UnloadPatches")
                 row.prop(scene.Hd2ToolPanelSettings, "LoadFoundArchives")

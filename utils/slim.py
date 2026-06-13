@@ -154,6 +154,10 @@ def init_bundle_mapping():
             bundle_name = os.path.basename(filename)
             bundle_offsets[bundle_name] = {}
             with open(os.path.join(game_data_folder, bundle_name), 'rb') as bundle:
+                magic = int.from_bytes(bundle.read(4), byteorder="little")
+                if magic != 0x52415344:
+                    del bundle_offsets[bundle_name]
+                    continue
                 bundle.seek(8)
                 num_chunks = read_int(bundle) # num data chunks
                 bundle.seek(0x20)

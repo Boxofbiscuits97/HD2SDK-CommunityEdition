@@ -75,6 +75,7 @@ Global_TypeIDs = [
     0xf7a09f8bb35a1d49, #havok_physics_properties
     0xfcaaf813b4d3cc1e, #camera_shake
     0x5ee65304478f8db5, #bik2
+    0x46bc82aae9ae0565, #unknown
 ]
 
 Global_IconDict = {

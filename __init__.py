@@ -2855,19 +2855,6 @@ class SaveStingrayUnitOperator(Operator):
         if SwapID and SwapID.isnumeric() and SwapID != ID:
             dest_id = int(SwapID)
         Entry = Global_TocManager.AddEntryToPatchID(Entry, dest_id)
-        stateMachineID = BonesID = None
-        for modifier in object.modifiers:
-            if modifier.type == "ARMATURE":
-                armature_obj = modifier.object
-                stateMachineID = armature_obj["StateMachineID"]
-                BonesID = armature_obj["BonesID"]
-                PrettyPrint(f"Found StateMachineID: {stateMachineID} and BonesID: {BonesID}")
-        if stateMachineID != None:
-            PrettyPrint(f"Set StateMachineRef: {stateMachineID}")
-            Entry.LoadedData.StateMachineRef = int(stateMachineID)
-        if BonesID != None:
-            PrettyPrint(f"Set BonesRef: {BonesID}")
-            Entry.LoadedData.BonesRef = int(BonesID)
         model = GetObjectsMeshData(Global_TocManager, Global_BoneNames)
         BlenderOpts = bpy.context.scene.Hd2ToolPanelSettings.get_settings_dict()
         if Entry is None:
@@ -2898,6 +2885,19 @@ class SaveStingrayUnitOperator(Operator):
                 self.report({'ERROR'},
                             f"MeshInfoIndex for {object[0].name} exceeds the number of meshes")
                 return{'CANCELLED'}
+        stateMachineID = BonesID = None
+        for modifier in object.modifiers:
+            if modifier.type == "ARMATURE":
+                armature_obj = modifier.object
+                stateMachineID = armature_obj["StateMachineID"]
+                BonesID = armature_obj["BonesID"]
+                PrettyPrint(f"Found StateMachineID: {stateMachineID} and BonesID: {BonesID}")
+        if stateMachineID != None:
+            PrettyPrint(f"Set StateMachineRef: {stateMachineID}")
+            Entry.LoadedData.StateMachineRef = int(stateMachineID)
+        if BonesID != None:
+            PrettyPrint(f"Set BonesRef: {BonesID}")
+            Entry.LoadedData.BonesRef = int(BonesID)
         wasSaved = Entry.Save(BlenderOpts=BlenderOpts)
         if not wasSaved:
             self.report({"ERROR"}, f"Failed to save unit {bpy.context.selected_objects[0].name}.")
@@ -2992,12 +2992,6 @@ class BatchSaveStingrayUnitOperator(Operator):
                 dest_id = int(SwapID)
             Entry = Global_TocManager.AddEntryToPatchID(Entry, dest_id)
             entries.append(Entry)
-        if IDitem[2] != None: 
-            PrettyPrint(f"Set StateMachineRef: {IDitem[2]}")
-            Entry.LoadedData.StateMachineRef = int(IDitem[2])
-        if IDitem[3] != None:
-            PrettyPrint(f"Set BonesRef: {IDitem[3]}")
-            Entry.LoadedData.BonesRef = int(IDitem[3])
         MeshData = GetObjectsMeshData(Global_TocManager, Global_BoneNames)
         for i, IDitem in enumerate(IDs):
             ID = IDitem[0]
@@ -3017,6 +3011,12 @@ class BatchSaveStingrayUnitOperator(Operator):
                     self.report({'ERROR'},f"MeshInfoIndex of {mesh_index} for {object.name} exceeds the number of meshes. Expected maximum MeshInfoIndex is: {excpectedLength}. Please change the custom properties to match this value and resave the unit.")
                     errors = True
                     num_meshes -= 1
+            if IDitem[2] != None: 
+                PrettyPrint(f"Set StateMachineRef: {IDitem[2]}")
+                Entry.LoadedData.StateMachineRef = int(IDitem[2])
+            if IDitem[3] != None:
+                PrettyPrint(f"Set BonesRef: {IDitem[3]}")
+                Entry.LoadedData.BonesRef = int(IDitem[3])
             wasSaved = Entry.Save(BlenderOpts=BlenderOpts)
             if not wasSaved:
                 self.report({"ERROR"}, f"Failed to save unit with ID {ID}.")

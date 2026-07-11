@@ -14,6 +14,7 @@ AnimationID = 10600967118105529382
 StateMachineID = 11855396184103720540
 StringID = 979299457696010195
 PhysicsID = 6877563742545042104
+XamlID = 5097092548853106021
 
 Global_MaterialParentIDs = {
     3430705909399566334 : "basic+",
@@ -92,4 +93,5 @@ Global_IconDict = {
     StateMachineID: 'DRIVER',
     StringID: 'WORDWRAP_ON',
     PhysicsID: 'PHYSICS',
+    XamlID: 'WORKSPACE',
 }

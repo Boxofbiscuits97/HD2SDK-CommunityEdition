@@ -107,7 +107,7 @@ class StingrayMeshFile:
         self.StateMachineRef    = f.uint64(self.StateMachineRef)
         self.HeaderData1        = f.uint32(self.HeaderData1)
         
-        if f.IsWriting() and self.Version == 10800437:
+        if f.IsWriting() and self.Version in [10800436, 10800437]:
             self.Version        = f.uint32(10800438)
         else:
             self.Version       = f.uint32(self.Version)
@@ -1104,10 +1104,10 @@ class StreamComponentInfo:
         elif name == "unk_normal":  format = 30
         elif name == "vec2_half":   format = 33
         elif name == "vec4_half":   format = 35
-        if self.DEVUnitVersion == 10800437 and format > 16: format -= 4 # quick and dirty fix for format changes in newer versions of the unit file, this is really gross and should be fixed properly at some point 
+        if self.DEVUnitVersion in [10800436, 10800437] and format > 16: format -= 4 # quick and dirty fix for format changes in newer versions of the unit file, this is really gross and should be fixed properly at some point 
         return format
     def GetSize(self):
-        if self.DEVUnitVersion == 10800437:
+        if self.DEVUnitVersion in [10800436, 10800437]:
                 if   self.Format == 0:  return 4
                 elif self.Format == 1:  return 8
                 elif self.Format == 2:  return 12
@@ -1134,7 +1134,7 @@ class StreamComponentInfo:
         raise Exception("Cannot get size of unknown vertex format: "+str(self.Format))
     def SerializeComponent(self, f: MemoryStream, value):
         try:
-            if self.DEVUnitVersion == 10800437:
+            if self.DEVUnitVersion in [10800436, 10800437]:
                 serialize_func = FUNCTION_LUTS.SERIALIZE_COMPONENT_LUT_OLD_UNITS[self.Format]
             else:
                 serialize_func = FUNCTION_LUTS.SERIALIZE_COMPONENT_LUT[self.Format]
@@ -1333,6 +1333,8 @@ class SerializeFunctions:
         if gpu.IsReading():
             norm = component.SerializeComponent(gpu, mesh.VertexNormals[vidx])
             if not isinstance(norm, int):
+                while len(norm) < 3:
+                    norm.append(0.0)
                 norm = list(mathutils.Vector((norm[0],norm[1],norm[2])).normalized())
                 mesh.VertexNormals[vidx] = norm[:3]
             else:

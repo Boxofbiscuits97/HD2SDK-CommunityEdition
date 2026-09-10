@@ -3970,9 +3970,9 @@ class GithubOperator(Operator):
         return{'FINISHED'}
     
 class LatestReleaseOperator(Operator):
-    bl_label  = "Update Helldivers 2 SDK"
+    bl_label  = "View SDK Changelog"
     bl_idname = "helldiver2.latest_release"
-    bl_description = "Opens The Github Page to the latest release"
+    bl_description = "Opens The Github Page to the latest changelog"
 
     def execute(self, context):
         url = "https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/releases/latest"

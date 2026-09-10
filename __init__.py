@@ -2829,6 +2829,7 @@ class ImportStingrayUnitOperator(Operator):
     bl_label = "Import Archive Unit"
     bl_idname = "helldiver2.archive_unit_import"
     bl_description = "Loads Unit into Blender Scene"
+    bl_options = {'REGISTER', 'UNDO'}
 
     object_id: StringProperty()
     def execute(self, context):

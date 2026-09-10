@@ -25,7 +25,8 @@ Global_MaterialParentIDs = {
     17265463703140804126 : "advanced",
     17720495965476876300 : "armorlut",
     9576304397847579354  : "translucent",
-    8580182439406660688 : "basic+"
+    8580182439406660688 : "basic+",
+    14268580320343776576: "alphaclip+"
 }
 
 Global_TypeIDs = [

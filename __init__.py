@@ -3979,16 +3979,6 @@ class LatestReleaseOperator(Operator):
         webbrowser.open(url, new=0, autoraise=True)
         return{'FINISHED'}
 
-class ViewChangelogOperator(Operator):
-    bl_label  = "View SDK Changelog"
-    bl_idname = "helldiver2.latest_release"
-    bl_description = "Opens The Github Page to the latest changelog"
-
-    def execute(self, context):
-        url = "https://github.com/Boxofbiscuits97/HD2SDK-CommunityEdition/releases/latest"
-        webbrowser.open(url, new=0, autoraise=True)
-        return{'FINISHED'}
-        
 class AutoUpdateOperator(Operator):
     bl_label = "Auto Update Helldivers 2 SDK"
     bl_idname = "helldiver2.update"
@@ -5582,7 +5572,6 @@ classes = (
     StateMachineSaveOperator,
     SetBoneRagdollOperator,
     AddLightOperator,
-    ViewChangelogOperator,
     LoadPlayerAvatarOperator,
     StateMachineAnimationIDOperator,
     ImportXAMLOperator,
@@ -5628,19 +5617,20 @@ def register():
     bpy.types.Scene.new_id_entry = StringProperty(name="new_id_entry", default="")
 
 def unregister():
+    del bpy.types.Scene.new_id_entry
+    for t in reversed(Global_TypeIDs):
+        delattr(bpy.types.Scene, f"index_{t}_dummy")
+        delattr(bpy.types.Scene, f"filter_{t}")
+        delattr(bpy.types.Scene, f"index_{t}")
+        delattr(bpy.types.Scene, f"list_{t}")
+    bpy.utils.unregister_class(ListItem)
+    bpy.utils.unregister_class(MY_UL_List)
+    bpy.types.VIEW3D_MT_armature_context_menu.remove(CustomBoneContext)
+    bpy.types.VIEW3D_MT_object_context_menu.remove(CustomPropertyContext)
     bpy.utils.unregister_class(WM_MT_button_context)
     del Scene.Hd2ToolPanelSettings
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-    bpy.types.VIEW3D_MT_object_context_menu.remove(CustomPropertyContext)
-    bpy.types.VIEW3D_MT_armature_context_menu.remove(CustomBoneContext)
-    for t in Global_TypeIDs:
-        delattr(bpy.types.Scene, f"list_{t}")
-        delattr(bpy.types.Scene, f"index_{t}")
-        delattr(bpy.types.Scene, f"filter_{t}")
-        delattr(bpy.types.Scene, f"index_{t}_dummy")
-    bpy.utils.unregister_class(MY_UL_List)
-    bpy.utils.unregister_class(ListItem)
 
 if __name__=="__main__":
     register()

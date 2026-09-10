@@ -63,7 +63,6 @@ Global_TypeIDs = [
     0x9e5c3cc74575aeb5, #shader_library_group
     0xe5ee32a477239a93, #shader_library
     0x05106b81dcd58a13, #runtime_font
-    0x0d972bab10b40fd3, #strings
     0x1d59bd6687db6b33, #ragdoll_profile
     0x2a0a70acfe476e1d, #ah_bin
     0x57a13425279979d7, #ik_skeleton

@@ -199,9 +199,9 @@ TextureTypeLookup = {
         ""
     ),
     "scope": (
-        "MRA",
+        "Metallic/Roughness/AO",
         "Lens Cutout Mask",
-        "Albedo",
+        "Color",
         "Normal"
     ),
     "translucent": (
@@ -1504,8 +1504,8 @@ def SetupNormalMapTemplate(nodeTree, inputNode, normalMap, bsdf):
 def SetupScopeBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap):
     inputNode.location = (-750, 0)
     SetupNormalMapTemplate(nodeTree, inputNode, normalMap, bsdf)
-    nodeTree.links.new(inputNode.outputs['Albedo'], bsdf.inputs['Base Color'])
-    nodeTree.links.new(inputNode.outputs['MRA'], separateColor.inputs['Color'])
+    nodeTree.links.new(inputNode.outputs['Color'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Metallic/Roughness/AO'], separateColor.inputs['Color'])
     nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Metallic'])
     nodeTree.links.new(separateColor.outputs['Green'], bsdf.inputs['Roughness'])
     nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])

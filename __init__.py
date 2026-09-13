@@ -1608,6 +1608,41 @@ def CreateGenericMaterial(ID, StingrayMat, mat):
             pass
         idx +=1
 
+def RestoreMissingMaterialTexture(image, path):
+    if os.path.exists(path):
+        return path
+
+    imageID = image.name.split(".")[0]
+    if not imageID.isnumeric():
+        return path
+
+    tempdir = tempfile.gettempdir()
+    try:
+        if not os.path.samefile(os.path.dirname(path), tempdir):
+            return path
+    except OSError:
+        return path
+
+    PrettyPrint(f"Restoring missing SDK texture {imageID} from archive data", "WARN")
+    Entry = Global_TocManager.GetEntry(int(imageID), TexID, True)
+    if Entry == None:
+        return path
+
+    StingrayTex = StingrayTexture()
+    StingrayTex.Serialize(MemoryStream(Entry.TocData), MemoryStream(Entry.GpuData), MemoryStream(Entry.StreamData))
+
+    dds_path = os.path.join(tempdir, f"{imageID}.dds")
+    png_path = os.path.join(tempdir, f"{imageID}.png")
+    with open(dds_path, 'w+b') as f:
+        f.write(StingrayTex.ToDDS())
+
+    result = subprocess.run([Global_texconvpath, "-y", "-o", tempdir, "-ft", "png", "-f", "R8G8B8A8_UNORM", "-sepalpha", "-alpha", "--", dds_path], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    if result.returncode != 0 or not os.path.isfile(png_path):
+        raise Exception(f"Failed to restore SDK texture {imageID} from archive data")
+
+    image.filepath = png_path
+    return png_path
+
 def GenerateMaterialTextures(Entry):
     material = group = None
     for mat in bpy.data.materials:
@@ -1630,7 +1665,7 @@ def GenerateMaterialTextures(Entry):
     if group == None:
         raise Exception("Could not find node group within material")
     filepaths = []
-    for input_socket in group.inputs:
+    for TexIdx, input_socket in enumerate(group.inputs):
         PrettyPrint(input_socket.name)
         if input_socket.is_linked:
             for link in input_socket.links:
@@ -1641,9 +1676,11 @@ def GenerateMaterialTextures(Entry):
                 PrettyPrint(f"Getting image path at: {path}")
                 ID = image.name.split(".")[0]
                 if not os.path.exists(path) and ID.isnumeric():
-                    PrettyPrint(f"Image not found. Attempting to find image: {ID} in temp folder.", 'WARN')
-                    tempdir = tempfile.gettempdir()
-                    path = f"{tempdir}/{ID}.png"
+                    saveOnlyCustom = bpy.context.scene.Hd2ToolPanelSettings.OnlySaveCustomTextures
+                    template = TextureTypeLookup.get(Entry.MaterialTemplate, ())
+                    isCustomSlot = TexIdx >= len(template) or template[TexIdx] != ''
+                    if not saveOnlyCustom or isCustomSlot:
+                        path = RestoreMissingMaterialTexture(image, path)
                 filepaths.append(path)
 
                 # enforce proper colorspace for abnormal stingray textures

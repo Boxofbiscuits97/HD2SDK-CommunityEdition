@@ -198,6 +198,12 @@ TextureTypeLookup = {
         "",
         ""
     ),
+    "scope": (
+        "MRA",
+        "Lens Cutout Mask",
+        "Albedo",
+        "Normal"
+    ),
     "translucent": (
         "Normal",
     )
@@ -205,6 +211,7 @@ TextureTypeLookup = {
 
 Global_Materials = (
         ("advanced", "Advanced", "A more comlpicated material, that is color, normal, emission and PBR capable which renders in the UI. Sourced from the Illuminate Overseer."),
+        ("scope", "Scope Material", "A PBR material with the game's scope lens cutout behavior."),
         ("basic+", "Basic+", "A basic material with a color, normal, and PBR map which renders in the UI, Sourced from a SEAF NPC"),
         ("translucent", "Translucent", "A translucent with a solid set color and normal map. Sourced from the Terminid Larva Backpack."),
         ("alphaclip+", "Alpha Clip+", "A material that supports an alpha mask which does not render in the UI. Extra features with emission. Sourced from a bot bio processor."),
@@ -1419,6 +1426,7 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     elif Entry.MaterialTemplate == "alphaclip": SetupAlphaClipBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     elif Entry.MaterialTemplate == "alphaclip+": SetupAlphaClipPlusBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     elif Entry.MaterialTemplate == "advanced": SetupAdvancedBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, TextureNodes, group, mat)
+    elif Entry.MaterialTemplate == "scope": SetupScopeBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap)
     elif Entry.MaterialTemplate == "translucent": SetupTranslucentBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     
     warning_label = nodeTree.nodes.new('NodeFrame')
@@ -1492,6 +1500,15 @@ def SetupNormalMapTemplate(nodeTree, inputNode, normalMap, bsdf):
     nodeTree.links.new(separateColorNormal.outputs['Green'], combineColorNormal.inputs['Green'])
     nodeTree.links.new(combineColorNormal.outputs['Color'], normalMap.inputs['Color'])
     nodeTree.links.new(normalMap.outputs['Normal'], bsdf.inputs['Normal'])
+
+def SetupScopeBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap):
+    inputNode.location = (-750, 0)
+    SetupNormalMapTemplate(nodeTree, inputNode, normalMap, bsdf)
+    nodeTree.links.new(inputNode.outputs['Albedo'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['MRA'], separateColor.inputs['Color'])
+    nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Metallic'])
+    nodeTree.links.new(separateColor.outputs['Green'], bsdf.inputs['Roughness'])
+    nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
 
 def SetupAdvancedBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, TextureNodes, group, mat):
     bsdf.inputs['Emission Strength'].default_value = 0

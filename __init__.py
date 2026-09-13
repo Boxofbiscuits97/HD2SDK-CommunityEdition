@@ -198,13 +198,27 @@ TextureTypeLookup = {
         "",
         ""
     ),
+    "scope": (
+        "Metallic/Roughness/AO",
+        "Scope Cut Mask",
+        "Color",
+        "Normal"
+    ),
     "translucent": (
         "Normal",
     )
 }
 
+ScopeTextureFormats = (
+    "BC7_UNORM",
+    "BC4_UNORM",
+    "BC7_UNORM",
+    "BC5_UNORM",
+)
+
 Global_Materials = (
         ("advanced", "Advanced", "A more comlpicated material, that is color, normal, emission and PBR capable which renders in the UI. Sourced from the Illuminate Overseer."),
+        ("scope", "Scope Material", "A PBR material with the game's scope lens cutout behavior."),
         ("basic+", "Basic+", "A basic material with a color, normal, and PBR map which renders in the UI, Sourced from a SEAF NPC"),
         ("translucent", "Translucent", "A translucent with a solid set color and normal map. Sourced from the Terminid Larva Backpack."),
         ("alphaclip+", "Alpha Clip+", "A material that supports an alpha mask which does not render in the UI. Extra features with emission. Sourced from a bot bio processor."),
@@ -1297,7 +1311,9 @@ def SaveStingrayMaterial(self, ID, TocData, GpuData, StreamData, LoadedData):
             if not Entry:
                 raise Exception(f"Could not find or generate texture entry ID: {int(mat.TexIDs[TexIdx])}")
             
-            if path.endswith(".dds"):
+            if self.MaterialTemplate == "scope":
+                SaveImagePNG(path, Entry.FileID, ScopeTextureFormats[TexIdx])
+            elif path.endswith(".dds"):
                 SaveImageDDS(path, Entry.FileID)
             else:
                 SaveImagePNG(path, Entry.FileID)
@@ -1310,7 +1326,12 @@ def SaveStingrayMaterial(self, ID, TocData, GpuData, StreamData, LoadedData):
 def AddMaterialToBlend(ID, StingrayMat, EmptyMatExists=False):
     try:
         mat = bpy.data.materials[str(ID)]
-        PrettyPrint(f"Found material for ID: {ID} Skipping creation of new material")
+        Entry = Global_TocManager.GetEntry(int(ID), MaterialID)
+        if Entry != None and Entry.MaterialTemplate == "scope" and FindScopeMaterialGroup(mat) == None:
+            PrettyPrint(f"Found incomplete Scope Material for ID: {ID}. Rebuilding its Blender nodes")
+            RestoreScopeMaterialGroup(Entry, StingrayMat, mat)
+        else:
+            PrettyPrint(f"Found material for ID: {ID} Skipping creation of new material")
         return
     except:
         PrettyPrint(f"Unable to find material in blender scene for ID: {ID} creating new material")
@@ -1419,6 +1440,7 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     elif Entry.MaterialTemplate == "alphaclip": SetupAlphaClipBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     elif Entry.MaterialTemplate == "alphaclip+": SetupAlphaClipPlusBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     elif Entry.MaterialTemplate == "advanced": SetupAdvancedBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, TextureNodes, group, mat)
+    elif Entry.MaterialTemplate == "scope": SetupScopeBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap)
     elif Entry.MaterialTemplate == "translucent": SetupTranslucentBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     
     warning_label = nodeTree.nodes.new('NodeFrame')
@@ -1430,6 +1452,31 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     warning_label.color = (1, 0, 0)
     warning_label.label_size = 20
     warning_label.shrink = True
+
+def FindScopeMaterialGroup(mat):
+    expectedInputs = TextureTypeLookup["scope"]
+    for node in mat.node_tree.nodes if mat.node_tree != None else []:
+        if node.type == 'GROUP' and node.node_tree != None:
+            if all(name in node.inputs.keys() for name in expectedInputs):
+                return node
+    return None
+
+def RestoreScopeMaterialGroup(Entry, StingrayMat, mat):
+    textureNodes = []
+    if mat.node_tree != None:
+        textureNodes = [node for node in mat.node_tree.nodes if node.type == 'TEX_IMAGE' and node.image != None]
+        textureNodes.sort(key=lambda node: node.location.y, reverse=True)
+    existingImages = [node.image for node in textureNodes]
+
+    mat.use_nodes = True
+    CreateAddonMaterial(Entry.FileID, StingrayMat, mat, Entry)
+
+    if len(existingImages) == len(StingrayMat.TexIDs):
+        textureNodes = [node for node in mat.node_tree.nodes if node.type == 'TEX_IMAGE']
+        textureNodes.sort(key=lambda node: node.location.y, reverse=True)
+        for node, image in zip(textureNodes, existingImages):
+            node.image = image
+    return FindScopeMaterialGroup(mat)
 
 def SetupBasicBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap):
     bsdf.inputs['Emission Strength'].default_value = 0
@@ -1492,6 +1539,15 @@ def SetupNormalMapTemplate(nodeTree, inputNode, normalMap, bsdf):
     nodeTree.links.new(separateColorNormal.outputs['Green'], combineColorNormal.inputs['Green'])
     nodeTree.links.new(combineColorNormal.outputs['Color'], normalMap.inputs['Color'])
     nodeTree.links.new(normalMap.outputs['Normal'], bsdf.inputs['Normal'])
+
+def SetupScopeBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap):
+    inputNode.location = (-750, 0)
+    SetupNormalMapTemplate(nodeTree, inputNode, normalMap, bsdf)
+    nodeTree.links.new(inputNode.outputs['Color'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Metallic/Roughness/AO'], separateColor.inputs['Color'])
+    nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Metallic'])
+    nodeTree.links.new(separateColor.outputs['Green'], bsdf.inputs['Roughness'])
+    nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
 
 def SetupAdvancedBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, TextureNodes, group, mat):
     bsdf.inputs['Emission Strength'].default_value = 0
@@ -1561,10 +1617,16 @@ def GenerateMaterialTextures(Entry):
     if material == None:
         raise Exception(f"Material Could not be Found ID: {Entry.FileID} {bpy.data.materials}")
     PrettyPrint(f"Found Material {material.name} {material}")
-    for node in material.node_tree.nodes:
-        if node.type == 'GROUP':
-            group = node
-            break
+    if Entry.MaterialTemplate == "scope":
+        group = FindScopeMaterialGroup(material)
+        if group == None:
+            PrettyPrint(f"Scope Material {Entry.FileID} has no valid node group. Rebuilding it", "WARN")
+            group = RestoreScopeMaterialGroup(Entry, Entry.LoadedData, material)
+    else:
+        for node in material.node_tree.nodes:
+            if node.type == 'GROUP':
+                group = node
+                break
     if group == None:
         raise Exception("Could not find node group within material")
     filepaths = []
@@ -3310,32 +3372,41 @@ class SaveTextureFromPNGOperator(Operator, ImportHelper):
 
         return{'FINISHED'}
 
-def SaveImagePNG(filepath, object_id):
+def SaveImagePNG(filepath, object_id, formatOverride=None):
     Entry = Global_TocManager.GetEntry(int(object_id), TexID)
     if Entry != None:
         if len(filepath) > 1:
             # get texture data
             Entry.Load()
             StingrayTex = Entry.LoadedData
-            tempdir = tempfile.gettempdir()
             PrettyPrint(filepath)
-            PrettyPrint(StingrayTex.Format)
-            subprocess.run([Global_texconvpath, "-y", "-o", tempdir, "-ft", "dds", "-dx10", "-f", StingrayTex.Format, "-sepalpha", "-alpha", "--", filepath], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            fileName = os.path.basename(filepath).replace(".png", ".dds")
-            dds_path = f"{tempdir}/{fileName}"
-            PrettyPrint(dds_path)
-            if not os.path.exists(dds_path):
-                raise Exception(f"Failed to convert to dds texture for: {dds_path}")
-            with open(dds_path, 'r+b') as f:
-                StingrayTex.FromDDS(f.read())
-            Toc = MemoryStream(IOMode="write")
-            Gpu = MemoryStream(IOMode="write")
-            Stream = MemoryStream(IOMode="write")
-            StingrayTex.Serialize(Toc, Gpu, Stream)
-            # add texture to entry
-            Entry.SetData(Toc.Data, Gpu.Data, Stream.Data, False)
+            textureFormat = formatOverride if formatOverride != None else StingrayTex.Format
+            PrettyPrint(textureFormat)
+            temporaryDirectory = tempfile.TemporaryDirectory(prefix="hd2_scope_texture_") if formatOverride != None else None
+            outputDirectory = temporaryDirectory.name if temporaryDirectory != None else tempfile.gettempdir()
+            try:
+                result = subprocess.run([Global_texconvpath, "-y", "-o", outputDirectory, "-ft", "dds", "-dx10", "-f", textureFormat, "-sepalpha", "-alpha", "--", filepath], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+                fileName = os.path.splitext(os.path.basename(filepath))[0] + ".dds"
+                dds_path = f"{outputDirectory}/{fileName}"
+                PrettyPrint(dds_path)
+                if result.returncode != 0 or not os.path.exists(dds_path):
+                    raise Exception(f"Failed to convert texture to {textureFormat}: {filepath}")
+                with open(dds_path, 'r+b') as f:
+                    StingrayTex.FromDDS(f.read())
+                StingrayTex.ParseDDSHeader()
+                if formatOverride != None and StingrayTex.Format != formatOverride:
+                    raise Exception(f"Expected {formatOverride}, got {StingrayTex.Format}: {filepath}")
+                Toc = MemoryStream(IOMode="write")
+                Gpu = MemoryStream(IOMode="write")
+                Stream = MemoryStream(IOMode="write")
+                StingrayTex.Serialize(Toc, Gpu, Stream)
+                # add texture to entry
+                Entry.SetData(Toc.Data, Gpu.Data, Stream.Data, False)
 
-            Global_TocManager.Save(int(object_id), TexID)
+                Global_TocManager.Save(int(object_id), TexID)
+            finally:
+                if temporaryDirectory != None:
+                    temporaryDirectory.cleanup()
 
 def SaveImageDDS(filepath, object_id):
     Entry = Global_TocManager.GetEntry(int(object_id), TexID)

@@ -3321,7 +3321,7 @@ def SaveImagePNG(filepath, object_id):
             PrettyPrint(filepath)
             PrettyPrint(StingrayTex.Format)
             subprocess.run([Global_texconvpath, "-y", "-o", tempdir, "-ft", "dds", "-dx10", "-f", StingrayTex.Format, "-sepalpha", "-alpha", "--", filepath], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            fileName = os.path.basename(filepath).replace(".png", ".dds")
+            fileName = Path(filepath).with_suffix(".dds").name
             dds_path = f"{tempdir}/{fileName}"
             PrettyPrint(dds_path)
             if not os.path.exists(dds_path):

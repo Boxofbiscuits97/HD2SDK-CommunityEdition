@@ -29,6 +29,7 @@ import importlib
 
 # Blender
 import bpy
+import bpy_extras.anim_utils
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, PointerProperty, CollectionProperty, FloatProperty
 from bpy.types import Panel, Operator, PropertyGroup, Scene, Menu, OperatorFileListElement, UIList
@@ -3547,9 +3548,15 @@ class SaveStingrayAnimationOperator(Operator):
             self.report({'ERROR'}, "Please select an armature")
             return {'CANCELLED'}
         action_name = object.animation_data.action.name
-        if len(object.animation_data.action.fcurves) == 0:
-            self.report({'ERROR'}, f"Action: {action_name} has no keyframe data! Make sure your animation has at least an initial keyframe with a recorded pose.")
-            return {'CANCELLED'}
+        if bpy.app.version[0] == 4:
+            if len(object.animation_data.action.fcurves) == 0:
+                self.report({'ERROR'}, f"Action: {action_name} has no keyframe data! Make sure your animation has at least an initial keyframe with a recorded pose.")
+                return {'CANCELLED'}
+        elif bpy.app.version[0] == 5:
+            channelbag = bpy_extras.anim_utils.action_get_channelbag_for_slot(object.animation_data.action, object.animation_data.action_slot)
+            if not channelbag or len(channelbag.fcurves) == 0:
+                self.report({'ERROR'}, f"Action: {action_name} has no keyframe data! Make sure your animation has at least an initial keyframe with a recorded pose.")
+                return {'CANCELLED'}
         entry_id = action_name.split(" ")[0].split("_")[0].split(".")[0]
         if entry_id.startswith("0x"):
             entry_id = hex_to_decimal(entry_id)

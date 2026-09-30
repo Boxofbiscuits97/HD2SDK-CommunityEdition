@@ -4587,11 +4587,12 @@ class Hd2ToolPanelSettings(PropertyGroup):
     LoadOnlyFirstFoundArchive : BoolProperty(name="Load Only First Found Archive", description="Only load the first archive found when searching by entry ID, otherwise all archives with the entry will be loaded", default=False)
     SearchAllInclusiveOnly    : BoolProperty(name="Search All Inclusive Only", description="When searching for an archive, only show archives that have all entries being searched for", default=False)
 
-    AutoSaveUnitMaterials : BoolProperty(name="Autosave Unit Materials", description="Save unsaved material entries applied to meshes when the unit is saved", default = True)
-    SaveNonSDKMaterials   : BoolProperty(name="Save Non-SDK Materials", description="Toggle if non-SDK materials should be autosaved when saving a mesh", default = False)
-    SaveUnsavedOnWrite    : BoolProperty(name="Save Unsaved on Write", description="Save all entries that are unsaved when writing a patch", default = True)
-    PatchBaseArchiveOnly  : BoolProperty(name="Patch Base Archive Only", description="When enabled, it will allow patched to only be created if the base archive is selected. This is helpful for new users.", default = True)
-    LegacyWeightNames     : BoolProperty(name="Legacy Weight Names", description="Brings back the old naming system for vertex groups using the X_Y schema", default = False)
+    AutoSaveUnitMaterials    : BoolProperty(name="Autosave Unit Materials", description="Save unsaved material entries applied to meshes when the unit is saved", default = True)
+    SaveNonSDKMaterials      : BoolProperty(name="Save Non-SDK Materials", description="Toggle if non-SDK materials should be autosaved when saving a mesh", default = False)
+    SaveUnsavedOnWrite       : BoolProperty(name="Save Unsaved on Write", description="Save all entries that are unsaved when writing a patch", default = True)
+    PatchBaseArchiveOnly     : BoolProperty(name="Patch Base Archive Only", description="When enabled, it will allow patched to only be created if the base archive is selected. This is helpful for new users.", default = True)
+    LegacyWeightNames        : BoolProperty(name="Legacy Weight Names", description="Brings back the old naming system for vertex groups using the X_Y schema", default = False)
+    IgnoreInvalidWeightNames : BoolProperty(name="Ignore Invalid Weight Names", description="Ignores unknown vertex groups instead of throwing an error", default = False)
     
     SaveTexturesWithMaterial: BoolProperty(name="Save Textures with Material", description="Save a material\'s referenced textures to the patch when said material is saved. When disabled, new random IDs will not be given each time the material is saved", default = True)
     GenerateRandomTextureIDs: BoolProperty(name="Generate Random Texture IDs", description="Give a material\'s referenced textures new random IDs when said material is saved", default = True)
@@ -4966,6 +4967,7 @@ class HellDivers2ToolsPanel(Panel):
             row.prop(scene.Hd2ToolPanelSettings, "AutoSaveUnitMaterials")
             row.prop(scene.Hd2ToolPanelSettings, "PatchBaseArchiveOnly")
             row.prop(scene.Hd2ToolPanelSettings, "LegacyWeightNames")
+            row.prop(scene.Hd2ToolPanelSettings, "IgnoreInvalidWeightNames")
             row.prop(scene.Hd2ToolPanelSettings, "MergeArmatures")
 
             #Custom Searching tools

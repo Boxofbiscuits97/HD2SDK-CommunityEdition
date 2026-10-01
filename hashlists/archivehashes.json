@@ -23,12 +23,12 @@
         "33cecc4e485ea3c4": "B-24 Enforcer",
         "788df19150915809": "B-24 Enforcer",
         "824aa91040dadba8": "B-27 Fortified Commando",
+		"5717aeb23774a749": "BFM-16 Tanker",
+        "0c206dbe38b89339": "BFM-77 Reformer",
+        "5ad0c7bf483d382a": "BFM-220 Ironclad",
         "e4e41c5f9c3848f0": "BP-20 Correct Officer",
         "1bb362e77179996f": "BP-32 Jackboot",
         "5fb542484cb2c2a5": "BP-77 Grand Juror",
-        "5717aeb23774a749": "BFM-16 Tanker",
-        "5ad0c7bf483d382a": "BFM-220 Ironclad",
-        "0c206dbe38b89339": "BFM-77 Reformer",
         "ffcad1f7ff9888d7": "CE-07 Demolition Specialist",
         "a88115eeba44ec4e": "CE-27 Ground Breaker",
         "4ceb3d4e31097c68": "CE-35 Trench Engineer",
@@ -148,12 +148,12 @@
         "d1a39b5edac646aa": "B-22 Model Citizen",
         "bb58aea9beba9e0e": "B-24 Enforcer",
         "49076aae3fe24987": "B-27 Fortified Commando",
+		"5fdb046d58a7c28b": "BFM-16 Tanker",
+        "16bf8d02fa2801b8": "BFM-77 Reformer",
+        "9fcde56b5a3667f2": "BFM-220 Ironclad",
         "44c466a6cf09718b": "BP-20 Correct Officer",
         "2a7c626239a5d6b4": "BP-32 Jackboot",
         "3e345b62ed9e3f46": "BP-77 Grand Juror",
-        "5fdb046d58a7c28b": "BFM-16 Tanker",
-        "9fcde56b5a3667f2": "BFM-220 Ironclad",
-        "16bf8d02fa2801b8": "BFM-77 Reformer",
         "fdd3d3e677e5a3f4": "CE-07 Demolition Specialist",
         "38a82f5be66c5b36": "CE-27 Ground Breaker",
         "b72f72e3863c1611": "CE-35 Trench Engineer",
@@ -328,7 +328,21 @@
         "ab5053cd9f74be7d": "Testament To Attrition",
         "91b82c8f3aa19bf7": "Watchful Compatriot",
         "a129aa656628c85a": "Free-Spirited Spangles",
-        "c90bfd2f73908de7": "Diagram of the Noblest Payload"
+        "c90bfd2f73908de7": "Diagram of the Noblest Payload",
+		"6adcfaf574f098c3": "United in Equality",
+		"7127cddfcadac799": "Podium of Prosperity",
+		"286b4afce516e5dd": "Bugslayer",
+		"3d67179b98272cc7": "Vector of Victory",
+		"7de5c34a83e4e9a9": "Scraps of Sovereignty",
+		"3dc98fd33ed81773": "Camo Cloak",
+		"96018f36679804a6": "City Fighter's Resolve",
+		"6f587e524618248d": "Eagle's Fury",
+		"476ad64c8b719fe": "Thundering Hooves of Loyalty",
+		"4420916dc066f8e2": "Rags of the Fashionable",
+		"99db4af09ae521bf": "Wedgeful Tricorn",
+		"83b33ab726e039d5": "Standard of Rapid Evacuation",
+		"c4094551db0870ee": "Shroud of the Juggernaut",
+		"57fd78ec1eb92f4f": "Tread of Liberty"
     },
 
     "Icons": { 
@@ -512,7 +526,7 @@
 
     "NPC": {
         "792b2a2ba11ae85d": "SEAF Soldier",
-        "131fe264b7380717": "SEAF Solider [OLD]"
+        "131fe264b7380717": "SEAF Soldier [OLD]"
     },
 
     "Vehicle": {
@@ -524,19 +538,27 @@
         "0bdf199f7ac14f43": "M-102 Fast Recon Vehicle (FRV)",
         "149f685717737cae": "M-103 Supply Fast Recon Vehicle (FRV)",
         "2cee40dfbd0b174d": "M-104 Incinerator Fast Recon Vehicle (FRV)",
+		"65ee777b72347cb4": "TD-110 Maelstrom (Tank)",
         "68ebdce3f7498179": "TD-220 Bastion MK XVI (Tank)",
-        "9aac8a3a538ce3b7": "Pelican-1"
+        "9aac8a3a538ce3b7": "Pelican-1",
+		"9aac8a3a538ce3b7": "Pelican-1 Hangar & Autocannon",
+		"f6fb08cc02d24255": "Pelican Vehicle Transport",
+		"1e33cc1600ff38f3": "Eagle-1",
+		"fcb56bff0db90aab": "Eagle-1 Hangar",
+		"9bc33b7058a2bd5a": "Eagle-1 Stratagem"
     },
 
     "Special Throwable": {
         "bd90b4fccb70622c": "G-3 Smoke",
         "25a04f6d9707d2cc": "G-4 Gas",
+		"b3983aa88d96fa0a": "G-8 Immolation",
         "b2d139f78a2e2120": "G-13 Incendiary Impact",
         "21e90918df69eff7": "G-16 Impact",
         "543ff1ff0bd82b44": "G-23 Stun",
         "ddcea5fdd4071767": "G-31 Arc",
         "2f1147605182c6ab": "G-48 Giga Grenade",
         "f590569dbbc6fe2d": "G-50 Seeker",
+		"d6d42eefe4936690": "G-60 Anti-Tank Seeker",
         "2cb3f69ab9bc1297": "G-109 Urchin",
         "dfb81f9917285965": "G-123 Thermite",
         "1721eee4581a9c54": "G-142 PyroTech",
@@ -555,6 +577,7 @@
     },
 
     "Assault Rifle": {
+		"f90a06c6e291692d": "AR-11 Arbitrator",
         "ebc7888cf3886e91": "AR-2 Coyote",
         "a14f1a98c80575af": "AR-23 Liberator",
         "c46cf24278594a7d": "AR-23A Liberator Carbine",
@@ -571,7 +594,7 @@
     "Marksman Rifle": {
         "e829d44fb5653ec4": "R-2 Amendment",
         "03b4b7a46856ccb2": "R-6 Deadeye",
-        "2404fa21fe49c32d": "R-63 Diligence & R-63CS Diligence Counter Sniper",
+        "2404fa21fe49c32d": "R-63 Diligence & R-63CS Diligence Counter Sniper & R-4 Hyena",
         "9974f498c67d5e20": "R-72 Censor",
         "68aa9a343aa4333c": "R-2124 Constitution"
     },
@@ -588,7 +611,7 @@
     },
 
     "Shotgun": {
-        "e566e3aaf90db459": "SG-8 Punisher",
+        "e566e3aaf90db459": "SG-8 Punisher & GL-15 Evictor",
         "695ba4a2683b4ce3": "SG-8S Slugger",
         "522be23400cc6086": "SG-20 Halt",
         "31894c33c4ed1e2a": "SG-88 Break-Action Shotgun",
@@ -608,6 +631,7 @@
     "Energy-Based": {
         "55938279f6ef8664": "ARC-12 Blitzer",
         "3a49b4448eaa94fe": "LAS-5 Scythe",
+		"28569b6c8c641298": "LAS-12 Sai",
         "f79b65e482594bef": "LAS-13 Trident",
         "6db0c562c2bc10b3": "LAS-16 Sickle",
         "7f927f50fa6c50e8": "LAS-17 Double-Edge Sickle",
@@ -629,6 +653,7 @@
         "82dcd83d81a385f3": "LAS-7 Dagger, LAS-58 Talon",
         "2844da91583db0f4": "P-11 Stim Pistol",
         "64c37a90c0d906de": "P-33 Missile Pistol",
+		"f3174ef31b118a55": "P-34 Breacher",
         "1b006880ac88d1cd": "P-35 Re-Educator",
         "41ce78fe8f96bebe": "P-72 Crisper",
         "9effc1c882578baf": "PLAS-15 Loyalist",
@@ -716,6 +741,7 @@
         "d85cf8192edbddc1": "SMG-37 Defender Standard Magazine",
         "c97c859c01d50fcf": "SMG-37 Defender Extended Mag",
         "661c5c71cc017b97": "SMG-37 Defender Drum Magazine",
+		"e4aca30d86b21463": "R-4 Hyena Short Mag",
         "e4aca30d86b21463": "R-72 Censor Extended Mag",
         "b9c02bb092fca9d1": "High-Capacity Heatsink",
         "187866959c3bb809": "High-Dissipation Heatsink",
@@ -723,7 +749,10 @@
         "9a58aa87e9da0172": "SMG-72 Pummeler SMG Drum Magazine",
         "5e264395c66c0013":	"SMG/FLAM-34 Stoker Standard Mag",
         "1b1fcc0e025c1f7d":	"SMG/FLAM-34 Stoker Extended Mag",
-        "97856895ea7a7b96":	"SMG/FLAM-34 Stoker Drum Mag"
+        "97856895ea7a7b96":	"SMG/FLAM-34 Stoker Drum Mag",
+		"f8d841ae320e62bf":	"SMG-203 Gallant Extended Mag",
+		"c467c251b67684d2":	"LAS-12 Sai High-Capacity Heatsink",
+		"2adf8c24d413b402":	"LAS-12 Sai High-Dissipation Heatsink"
     },
 
     "Scope": {
@@ -745,6 +774,7 @@
         "5c8058963f766439": "10g Half Choke",
         "5238bd7b9eca7c3f": "10g Full Choke",
         "650a24debc71e5c7": "10g Duckbill",
+		"d6e442e0741b6c5f": "12g Standard Choke",
         "a952bd560a4b1e0d": "12g Half Choke",
         "3a3cde32420b1fb4": "12g Full Choke",
         "754f8570c7a383a6": "12g Duckbill Muzzle",
@@ -766,12 +796,14 @@
         "75cf73a0819bf767": "Bayonet",
         "4bd1b85defd8a016": "Counter Sniper Muzzle Break",
         "8475f912fb83a589": "Laser Sight W/ Flashlight",
-        "d6e442e0741b6c5f": "Muzzle Brake",
         "393f7ce48d9515de": "P-4 Senator Barrel",
         "1c1678e034c76ca8": "Pacifier Muzzle Break",
         "950461b424956775": "Penetrator Muzzle Break",
+		"981a0bf27dd6a546": "Tenderizer Muzzle Break",
+		"aedc4c57e8239d58": "Hyena Muzzle Break",
+		"c630d7c0ea6ceaca": "Sai Focus Lens",
         "3968938b8147df7c": "Solo Light",
-        "981a0bf27dd6a546": "Tenderizer Muzzle Break",
+		"2ab752f65427a44c": "Solo Laser",
         "64f56a84b883af7d": "Vertical Foregrip",
         "c5de422eed100414": "Vertical Foregrip W/ Flashlight",
         "838a0fde641bb2b0": "Sweeper Bayonet"

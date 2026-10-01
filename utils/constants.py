@@ -15,8 +15,10 @@ StateMachineID = 11855396184103720540
 StringID = 979299457696010195
 PhysicsID = 6877563742545042104
 XamlID = 5097092548853106021
+ScopeMaterialParentID = 5539567381761957941
 
 Global_MaterialParentIDs = {
+    ScopeMaterialParentID : "scope",
     3430705909399566334 : "basic+",
     15586118709890920288 : "alphaclip",
     6101987038150196875 : "original",

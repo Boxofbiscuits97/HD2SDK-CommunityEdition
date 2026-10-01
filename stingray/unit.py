@@ -284,9 +284,15 @@ class StingrayMeshFile:
             self.UnreversedConnectingBoneData = f.bytes(self.UnreversedConnectingBoneData, UnreversedConnectingBoneDataSize)
 
         # Bone Info
+        # Static meshes using parent 4ce must omit the empty bone-info block.
+        ScopeUnitWithoutBones = (
+            len(self.BoneInfoArray) == 0
+            and (f.IsWriting() or self.BoneInfoOffset == 0)
+            and self.UsesScopeMaterial(Global_TocManager, f.Data if f.IsReading() else None)
+        )
         if f.IsReading(): f.seek(self.BoneInfoOffset)
         else            : self.BoneInfoOffset = f.tell()
-        self.NumBoneInfo = f.uint32(len(self.BoneInfoArray))
+        self.NumBoneInfo = 0 if ScopeUnitWithoutBones else f.uint32(len(self.BoneInfoArray))
         if f.IsWriting() and not redo_offsets:
             self.BoneInfoOffsets = [0]*self.NumBoneInfo
         if f.IsReading():
@@ -325,6 +331,9 @@ class StingrayMeshFile:
             #                 PrettyPrint(f"Bone: {BoneName}")
             #                 continue
 
+
+        if f.IsWriting() and ScopeUnitWithoutBones:
+            self.BoneInfoOffset = 0
 
         # Stream Info
         if self.StreamInfoOffset != 0:
@@ -445,7 +454,7 @@ class StingrayMeshFile:
         OrderedMeshes = self.CreateOrderedMeshList()
         # Create Vertex Components If Writing
         if gpu.IsWriting():
-            self.SetupRawMeshComponents(OrderedMeshes, BlenderOpts)
+            self.SetupRawMeshComponents(OrderedMeshes, Global_TocManager, BlenderOpts)
 
         # Serialize Gpu Data
         for stream_idx in range(len(OrderedMeshes)):
@@ -632,7 +641,7 @@ class StingrayMeshFile:
         Mesh_Info = self.MeshInfoArray[self.DEV_MeshInfoMap[mesh.MeshInfoIndex]]
         mesh.ReInitVerts(Mesh_Info.GetNumVertices())
 
-    def SetupRawMeshComponents(self, OrderedMeshes, BlenderOpts=None):
+    def SetupRawMeshComponents(self, OrderedMeshes, Global_TocManager, BlenderOpts=None):
         for stream_idx in range(len(OrderedMeshes)):
             Stream_Info = self.StreamInfoArray[stream_idx]
 
@@ -654,6 +663,9 @@ class StingrayMeshFile:
                 if len(mesh.VertexBoneIndices)> 0: IsSkinned     = True
                 if len(mesh.VertexUVs)   > NumUVs: NumUVs = len(mesh.VertexUVs)
                 if len(mesh.VertexBoneIndices) > NumBoneIndices: NumBoneIndices = len(mesh.VertexBoneIndices)
+            # Parent 4ce reads a fourth UV channel for the scope cutout.
+            if self.UsesScopeMaterial(Global_TocManager, Meshes=OrderedMeshes[stream_idx][0]):
+                NumUVs = max(4, NumUVs)
             if BlenderOpts:    
                 if BlenderOpts.get("Force3UVs"):
                     NumUVs = max(3, NumUVs)
@@ -697,6 +709,45 @@ class StingrayMeshFile:
             Stream_Info.VertexStride = 0
             for Component in Stream_Info.Components:
                 Stream_Info.VertexStride += Component.GetSize()
+
+    def UsesScopeMaterial(self, Global_TocManager, SerializedData=None, Meshes=None):
+        ScopeMaterialIDs = []
+        if SerializedData is not None:
+            MaterialsOffset = self.MaterialsOffset
+            if MaterialsOffset <= 0 or MaterialsOffset + 4 > len(SerializedData):
+                return False
+            NumMaterials = int.from_bytes(SerializedData[MaterialsOffset:MaterialsOffset + 4], "little")
+            MaterialIDsOffset = MaterialsOffset + 4 + NumMaterials * 4
+            if MaterialIDsOffset + NumMaterials * 8 > len(SerializedData):
+                return False
+            ScopeMaterialIDs = [
+                int.from_bytes(
+                    SerializedData[MaterialIDsOffset + index * 8:MaterialIDsOffset + (index + 1) * 8],
+                    "little",
+                )
+                for index in range(NumMaterials)
+            ]
+        else:
+            for Mesh in self.RawMeshes if Meshes is None else Meshes:
+                for Material in Mesh.Materials:
+                    try:
+                        ScopeMaterialIDs.append(int(Material.MatID))
+                    except (TypeError, ValueError):
+                        pass
+
+        for FileID in ScopeMaterialIDs:
+            if FileID == ScopeMaterialParentID:
+                return True
+            Entry = Global_TocManager.GetEntry(FileID, MaterialID)
+            if Entry is None:
+                continue
+            if Entry.MaterialTemplate == "scope":
+                return True
+            if len(Entry.TocData) >= 32:
+                ParentID = int.from_bytes(Entry.TocData[24:32], "little")
+                if ParentID == ScopeMaterialParentID:
+                    return True
+        return False
             
 
 class BoneInfo:

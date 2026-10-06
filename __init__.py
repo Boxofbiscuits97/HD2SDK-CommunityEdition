@@ -1409,7 +1409,7 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     bsdf.inputs['IOR'].default_value = 1
     bsdf.inputs['Emission Strength'].default_value = 1
 
-    bpy.ops.file.unpack_all(method='REMOVE')
+    # bpy.ops.file.unpack_all(method="WRITE_LOCAL")
     
     PrettyPrint(f"Setting up any custom templates. Current Template: {Entry.MaterialTemplate}")
 
@@ -1575,7 +1575,7 @@ def GenerateMaterialTextures(Entry):
             for link in input_socket.links:
                 image = link.from_node.image
                 if image.packed_file:
-                    raise Exception(f"Image: {image.name} is packed. Please unpack your image.")
+                    image.unpack(method="WRITE_LOCAL")
                 path = bpy.path.abspath(image.filepath)
                 PrettyPrint(f"Getting image path at: {path}")
                 ID = image.name.split(".")[0]

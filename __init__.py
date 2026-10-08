@@ -1447,19 +1447,12 @@ def CreateAddonMaterial(ID, StingrayMat: StingrayMaterial, mat, Entry: TocEntry)
     warning_label.label_size = 20
     warning_label.shrink = True
 
-    shader_data_node = nodeTree.nodes.new('NodeFrame')
-    shader_data_node.location = (outputNode.location.x + 150, outputNode.location.y) 
-    shader_data_node.width = 250
-    shader_data_node.height = 40
-    shader_data_node.label_size = 10
-    shader_data_node.label = "Shader Variable Data"
-
     StingrayMat.DEV_FileID = Entry.FileID
 
 def CreateShaderVariableNode(nodeTree, previousNode, data):
     node = nodeTree.nodes.new('NodeFrame')
     outputNode = nodeTree.nodes.get('Group Output')
-    node.location = (outputNode.location.x + 150, previousNode.location.y - 50) 
+    node.location = (outputNode.location.x + 200, previousNode.location.y - 50) 
     node.width = 250
     node.height = 40
     node.label_size = 8
@@ -1493,7 +1486,7 @@ def UpdateShaderVariableNodes(Entry: TocEntry):
 
     outputNode = nodeTree.nodes.get('Group Output')
     shader_data_node = nodeTree.nodes.new('NodeFrame')
-    shader_data_node.location = (outputNode.location.x + 150, outputNode.location.y) 
+    shader_data_node.location = (outputNode.location.x + 200, outputNode.location.y) 
     shader_data_node.width = 250
     shader_data_node.height = 40
     shader_data_node.label_size = 10

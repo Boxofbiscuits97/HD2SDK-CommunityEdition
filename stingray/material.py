@@ -34,6 +34,7 @@ class StingrayMaterial:
             textureType.ID = f.uint32(textureType.ID)
             if textureType.ID in Global_TextureTypes:
                 textureType.name = Global_TextureTypes[textureType.ID]
+            else: textureType.name = hex(textureType.ID)
         self.TexIDs  = [f.uint64(TexID) for TexID in self.TexIDs]
         for variable in self.ShaderVariables:
             variable.klass = f.uint32(variable.klass)

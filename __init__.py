@@ -1348,6 +1348,7 @@ def CreateGameMaterial(StingrayMat, mat):
     for TextureID in StingrayMat.TexIDs:
         texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
         texImage.location = (-450, height - 300*idx)
+        texImage.label = StingrayMat.TextureTypes[idx].name
 
         try:    bpy.data.images[str(TextureID)]
         except: Global_TocManager.Load(TextureID, TexID, False, True)
@@ -1378,6 +1379,7 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     for TextureID in StingrayMat.TexIDs:
         texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
         texImage.location = (-450, height - 300*idx)
+        texImage.label = StingrayMat.TextureTypes[idx].name
 
         TextureNodes.append(texImage)
 

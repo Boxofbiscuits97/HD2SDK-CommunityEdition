@@ -1,4 +1,7 @@
 import os
+import struct
+
+from ..utils.logger import PrettyPrint
 from ..utils.memoryStream import MemoryStream
 
 Global_ShaderVariables = {}
@@ -14,6 +17,8 @@ class StingrayMaterial:
 
         self.DEV_ShowEditor = False
         self.DEV_DDSPaths = []
+        self.DEV_FileID = 0
+
     def Serialize(self, f: MemoryStream):
         self.undat1      = f.bytes(self.undat1, 12)
         self.EndOffset   = f.uint32(self.EndOffset)
@@ -65,6 +70,18 @@ class StingrayMaterial:
     def EditorUpdate(self):
         self.DEV_DDSPaths = [None for n in range(len(self.TexIDs))]
 
+    def set_encoded_data(self, data: str):
+        parts = data.split()
+        found_ID = int(parts[0], 16)
+
+        for variable in self.ShaderVariables:
+            if variable.ID == found_ID:
+                variable.values = [hex_to_float(part) for part in parts[1:]]
+                PrettyPrint(f"Set encoded data for variable {variable.name} (ID: {variable.ID}) to: {variable.values}")
+                break
+        else:
+            PrettyPrint(f"Shader Variable ID {found_ID} not found in material. \n\n {[(variable.name, variable.ID) for variable in self.ShaderVariables]}", "ERROR")
+
 class ShaderVariable:
     klasses = {
         0: "Scalar",
@@ -78,6 +95,13 @@ class ShaderVariable:
         self.klass = self.klassName = self.elements = self.ID = self.offset = self.elementStride = 0
         self.values = []
         self.name = ""
+
+    def get_encoded_data(self) -> str:
+        data = f"{self.ID:08X}"
+        for value in self.values:
+            hex_value = float_to_hex(value)
+            data += f" {hex_value}"
+        return data
 
 class TextureType:
     def __init__(self):
@@ -97,3 +121,9 @@ def LoadTextureTypes(path):
     text = file.read()
     for line in text.splitlines():
         Global_TextureTypes[int(line.split()[1], 16)] = line.split()[0]
+
+def float_to_hex(float_value) -> str:
+    return f"{struct.unpack('>I', struct.pack('>f', float_value))[0]:08X}"
+
+def hex_to_float(hex_value: str):
+    return struct.unpack('>f', struct.pack('>I', int(hex_value, 16)))[0]

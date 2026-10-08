@@ -1238,15 +1238,17 @@ def LoadStingrayMaterial(ID, TocData, GpuData, StreamData, Reload, MakeBlendObje
 
     f = MemoryStream(TocData)
     Material = StingrayMaterial()
+    Material.DEV_FileID = ID
     Material.Serialize(f)
     if MakeBlendObject and not (exists and not Reload): AddMaterialToBlend(ID, Material, Reload)
     elif force_reload: AddMaterialToBlend(ID, Material, True)
     return Material
 
-def SaveStingrayMaterial(self, ID, TocData, GpuData, StreamData, LoadedData):
+def SaveStingrayMaterial(self, ID, TocData, GpuData, StreamData, LoadedData: StingrayMaterial):
     if self.MaterialTemplate != None:
         texturesFilepaths = GenerateMaterialTextures(self)
     mat = LoadedData
+    SaveShaderVariableData(LoadedData)
     for TexIdx in range(len(mat.TexIDs)):
         if not bpy.context.scene.Hd2ToolPanelSettings.SaveTexturesWithMaterial:
             continue
@@ -1339,7 +1341,7 @@ def AddMaterialToBlend(ID, StingrayMat, EmptyMatExists=False):
     if Entry.MaterialTemplate != None: CreateAddonMaterial(ID, StingrayMat, mat, Entry)
     else: CreateGameMaterial(StingrayMat, mat)
     
-def CreateGameMaterial(StingrayMat, mat):
+def CreateGameMaterial(StingrayMat: StingrayMaterial, mat):
     for node in mat.node_tree.nodes:
         if node.bl_idname == 'ShaderNodeTexImage':
             mat.node_tree.nodes.remove(node)
@@ -1358,7 +1360,7 @@ def CreateGameMaterial(StingrayMat, mat):
             pass
         idx +=1
 
-def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
+def CreateAddonMaterial(ID, StingrayMat: StingrayMaterial, mat, Entry: TocEntry):
     mat.node_tree.nodes.clear()
     output = mat.node_tree.nodes.new('ShaderNodeOutputMaterial')
     output.location = (200, 300)
@@ -1444,6 +1446,70 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     warning_label.color = (1, 0, 0)
     warning_label.label_size = 20
     warning_label.shrink = True
+
+    shader_data_node = nodeTree.nodes.new('NodeFrame')
+    shader_data_node.location = (outputNode.location.x + 150, outputNode.location.y) 
+    shader_data_node.width = 250
+    shader_data_node.height = 40
+    shader_data_node.label_size = 10
+    shader_data_node.label = "Shader Variable Data"
+
+    StingrayMat.DEV_FileID = Entry.FileID
+
+def CreateShaderVariableNode(nodeTree, previousNode, data):
+    node = nodeTree.nodes.new('NodeFrame')
+    outputNode = nodeTree.nodes.get('Group Output')
+    node.location = (outputNode.location.x + 150, previousNode.location.y - 50) 
+    node.width = 250
+    node.height = 40
+    node.label_size = 8
+    node.label = data
+    return node
+
+def GetMaterialNodeTree(FileID: str):
+    nodeTree = None
+    mat = bpy.data.materials.get(FileID)
+    if mat != None:
+        mat_nodeTree = mat.node_tree
+        for node in mat_nodeTree.nodes:
+            if node.type == 'GROUP':
+                nodeTree = node.node_tree
+                break
+    return nodeTree
+
+def UpdateShaderVariableNodes(Entry: TocEntry):
+    StingrayMat = Entry.LoadedData
+    StingrayMat.DEV_FileID = Entry.FileID
+    nodeTree = GetMaterialNodeTree(str(Entry.FileID))
+
+    for node in list(nodeTree.nodes):
+        if isinstance(node, bpy.types.NodeFrame):  
+            if node.label_size in [8, 10]: # delete shader variables and header only, not the warning label
+                nodeTree.nodes.remove(node)
+
+    outputNode = nodeTree.nodes.get('Group Output')
+    shader_data_node = nodeTree.nodes.new('NodeFrame')
+    shader_data_node.location = (outputNode.location.x + 150, outputNode.location.y) 
+    shader_data_node.width = 250
+    shader_data_node.height = 40
+    shader_data_node.label_size = 10
+    shader_data_node.label = "Shader Variable Data"
+
+    previous_node = shader_data_node
+    for variable in StingrayMat.ShaderVariables:
+        data = variable.get_encoded_data()
+        previous_node = CreateShaderVariableNode(nodeTree, previous_node, data)
+
+def SaveShaderVariableData(material: StingrayMaterial):
+    nodeTree = GetMaterialNodeTree(str(material.DEV_FileID))
+    if nodeTree is None:
+        PrettyPrint(f"No node tree reference found for material. Cannot save shader variable data.", 'WARN')
+        return
+
+    for node in nodeTree.nodes:
+        if isinstance(node, bpy.types.NodeFrame) and node.label_size == 8:  # Assuming label_size 8 is unique to shader variable nodes
+            data = node.label
+            material.set_encoded_data(data)
 
 def SetupBasicBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap):
     bsdf.inputs['Emission Strength'].default_value = 0
@@ -2503,6 +2569,7 @@ class MaterialShaderVariableEntryOperator(Operator):
         Entry = Global_TocManager.GetEntry(self.object_id, MaterialID)
         if Entry:
             Entry.LoadedData.ShaderVariables[self.variable_index].values[self.value_index] = self.value
+            UpdateShaderVariableNodes(Entry)
             PrettyPrint(f"Set value to: {self.value} at variable: {self.variable_index} value: {self.value_index} for material ID: {self.object_id}")
         else:
             self.report({'ERROR'}, f"Could not find entry for ID: {self.object_id}")
@@ -2537,6 +2604,7 @@ class MaterialShaderVariableColorEntryOperator(Operator):
         if Entry:
             for idx in range(3):
                 Entry.LoadedData.ShaderVariables[self.variable_index].values[idx] = self.color[idx]
+            UpdateShaderVariableNodes(Entry)
             PrettyPrint(f"Set color to: {self.color}for material ID: {self.object_id}")
         else:
             self.report({'ERROR'}, f"Could not find entry for ID: {self.object_id}")

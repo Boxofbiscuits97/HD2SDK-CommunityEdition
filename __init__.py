@@ -69,7 +69,7 @@ importlib.reload(xaml_m)
 
 from .stingray.animation import StingrayAnimation, AnimationException
 from .stingray.raw_dump import StingrayRawDump
-from .stingray.material import LoadShaderVariables, StingrayMaterial
+from .stingray.material import LoadShaderVariables, LoadTextureTypes, StingrayMaterial
 from .stingray.texture import StingrayTexture
 from .stingray.particle import StingrayParticles
 from .stingray.state_machine import StingrayStateMachine
@@ -99,6 +99,7 @@ Global_friendlynamespath = f"{AddonPath}/hashlists/friendlynames.txt"
 
 Global_archivehashpath   = f"{AddonPath}/hashlists/archivehashes.json"
 Global_variablespath     = f"{AddonPath}/hashlists/shadervariables.txt"
+Global_texturetypespath  = f"{AddonPath}/hashlists/texturetypes.txt"
 Global_bonehashpath      = f"{AddonPath}/hashlists/bonehash.txt"
 
 Global_defaultgamepath   = "C:\Program Files (x86)\Steam\steamapps\common\Helldivers 2\data\ "
@@ -4795,16 +4796,21 @@ class HellDivers2ToolsPanel(Panel):
     bl_region_type = "UI"
     bl_category = "Modding"
 
-    def draw_material_editor(self, Entry, layout, row):
+    def draw_material_editor(self, Entry: TocEntry, layout, row):
         if Entry.IsLoaded:
-            mat = Entry.LoadedData
+            mat: StingrayMaterial = Entry.LoadedData
             for i, t in enumerate(mat.TexIDs):
                 row = layout.row(); row.separator(factor=2.0)
                 ddsPath = mat.DEV_DDSPaths[i]
                 if ddsPath != None: filepath = Path(ddsPath)
                 label = filepath.name if ddsPath != None else str(t)
+                name = "Unknown"
+                texture_type = mat.TextureTypes[i]
+                if texture_type != None:
+                    name = texture_type.name
                 if Entry.MaterialTemplate != None:
-                    label = TextureTypeLookup[Entry.MaterialTemplate][i] + ": " + label
+                    name = TextureTypeLookup[Entry.MaterialTemplate][i]
+                label = name + ": " + label
                 material_texture_entry = row.operator("helldiver2.material_texture_entry", icon='FILE_IMAGE', text=label, emboss=False)
                 material_texture_entry.object_id = str(t)
                 material_texture_entry.texture_index = str(i)
@@ -5628,6 +5634,7 @@ def register():
     LoadNameHashes()
     LoadArchiveHashes()
     LoadShaderVariables(Global_variablespath)
+    LoadTextureTypes(Global_texturetypespath)
     LoadBoneHashes(Global_bonehashpath, Global_BoneNames)
     for cls in classes:
         bpy.utils.register_class(cls)

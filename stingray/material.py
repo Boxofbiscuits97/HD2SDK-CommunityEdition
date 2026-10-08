@@ -2,12 +2,13 @@ import os
 from ..utils.memoryStream import MemoryStream
 
 Global_ShaderVariables = {}
+Global_TextureTypes = {}
 
 class StingrayMaterial:
     def __init__(self):
         self.undat1 = self.undat3 = self.undat4 = self.undat5 = self.undat6 = self.RemainingData = bytearray()
         self.EndOffset = self.undat2 = self.ParentMaterialID = self.NumTextures = self.NumVariables = self.VariableDataSize = 0
-        self.TexUnks = []
+        self.TextureTypes = []
         self.TexIDs  = []
         self.ShaderVariables = []
 
@@ -26,10 +27,13 @@ class StingrayMaterial:
         self.VariableDataSize = f.uint32(self.VariableDataSize)
         self.undat6      = f.bytes(self.undat6, 12)
         if f.IsReading():
-            self.TexUnks = [0 for n in range(self.NumTextures)]
+            self.TextureTypes = [TextureType() for n in range(self.NumTextures)]
             self.TexIDs = [0 for n in range(self.NumTextures)]
             self.ShaderVariables = [ShaderVariable() for n in range(self.NumVariables)]
-        self.TexUnks = [f.uint32(TexUnk) for TexUnk in self.TexUnks]
+        for textureType in self.TextureTypes:
+            textureType.ID = f.uint32(textureType.ID)
+            if textureType.ID in Global_TextureTypes:
+                textureType.name = Global_TextureTypes[textureType.ID]
         self.TexIDs  = [f.uint64(TexID) for TexID in self.TexIDs]
         for variable in self.ShaderVariables:
             variable.klass = f.uint32(variable.klass)
@@ -74,9 +78,21 @@ class ShaderVariable:
         self.values = []
         self.name = ""
 
+class TextureType:
+    def __init__(self):
+        self.ID = 0
+        self.name = ""
+
 def LoadShaderVariables(path):
     global Global_ShaderVariables
     file = open(path, "r")
     text = file.read()
     for line in text.splitlines():
         Global_ShaderVariables[int(line.split()[1], 16)] = line.split()[0]
+
+def LoadTextureTypes(path):
+    global Global_TextureTypes
+    file = open(path, "r")
+    text = file.read()
+    for line in text.splitlines():
+        Global_TextureTypes[int(line.split()[1], 16)] = line.split()[0]

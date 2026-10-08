@@ -1245,10 +1245,10 @@ def LoadStingrayMaterial(ID, TocData, GpuData, StreamData, Reload, MakeBlendObje
     return Material
 
 def SaveStingrayMaterial(self, ID, TocData, GpuData, StreamData, LoadedData: StingrayMaterial):
+    SaveShaderVariableData(LoadedData)
     if self.MaterialTemplate != None:
         texturesFilepaths = GenerateMaterialTextures(self)
     mat = LoadedData
-    SaveShaderVariableData(LoadedData)
     for TexIdx in range(len(mat.TexIDs)):
         if not bpy.context.scene.Hd2ToolPanelSettings.SaveTexturesWithMaterial:
             continue
@@ -1466,7 +1466,7 @@ def CreateShaderVariableNode(nodeTree, previousNode, data):
     node.label = data
     return node
 
-def GetMaterialNodeTree(FileID: str):
+def GetMaterialNodeTree(FileID: str) -> bpy.types.NodeTree:
     nodeTree = None
     mat = bpy.data.materials.get(FileID)
     if mat != None:
@@ -1481,6 +1481,10 @@ def UpdateShaderVariableNodes(Entry: TocEntry):
     StingrayMat = Entry.LoadedData
     StingrayMat.DEV_FileID = Entry.FileID
     nodeTree = GetMaterialNodeTree(str(Entry.FileID))
+
+    if nodeTree is None:
+        PrettyPrint(f"No node tree reference found for material. Cannot update shader variable data.", 'WARN')
+        return
 
     for node in list(nodeTree.nodes):
         if isinstance(node, bpy.types.NodeFrame):  
@@ -1499,6 +1503,8 @@ def UpdateShaderVariableNodes(Entry: TocEntry):
     for variable in StingrayMat.ShaderVariables:
         data = variable.get_encoded_data()
         previous_node = CreateShaderVariableNode(nodeTree, previous_node, data)
+    
+    UpdateMaterialPreviews(Entry)
 
 def SaveShaderVariableData(material: StingrayMaterial):
     nodeTree = GetMaterialNodeTree(str(material.DEV_FileID))
@@ -1642,7 +1648,7 @@ def CreateGenericMaterial(ID, StingrayMat, mat):
             pass
         idx +=1
 
-def GenerateMaterialTextures(Entry):
+def GenerateMaterialTextures(Entry: TocEntry):
     material = group = None
     for mat in bpy.data.materials:
         if mat.name == str(Entry.FileID):
@@ -1678,32 +1684,40 @@ def GenerateMaterialTextures(Entry):
                 if "Normal" in input_socket.name or "Base Color/Emission Mask" in input_socket.name:
                      image.colorspace_settings.name = 'Non-Color'
     
+    UpdateMaterialPreviews(Entry)
+
+    PrettyPrint(f"Found {len(filepaths)} Images: {filepaths}")
+    return filepaths
+
+def UpdateMaterialPreviews(Entry: TocEntry):
+    node_tree = GetMaterialNodeTree(str(Entry.FileID))
+    if node_tree is None:
+        PrettyPrint(f"No node tree reference found for material. Cannot update material previews.", 'WARN')
+        return
+
     # display proper emissives on advanced material
-    if "advanced" in group.node_tree.name:
+    if "advanced" in node_tree.name:
         colorVariable = Entry.LoadedData.ShaderVariables[32].values
         emissionColor = (colorVariable[0], colorVariable[1], colorVariable[2], 1)
         emissionStrength = Entry.LoadedData.ShaderVariables[40].values[0]
         emissionStrength = max(0, emissionStrength)
         PrettyPrint(f"Emission color: {emissionColor} Strength: {emissionStrength}")
-        for node in group.node_tree.nodes:
+        for node in node_tree.nodes:
             if node.type == 'BSDF_PRINCIPLED':
                 node.inputs['Emission Color'].default_value = emissionColor
             if node.type == 'MATH' and node.operation == 'MULTIPLY':
                 node.inputs[1].default_value = emissionStrength
-
+    
     # update color and alpha of translucent
-    if "translucent" in group.node_tree.name:
+    if "translucent" in node_tree.name:
         colorVariable = Entry.LoadedData.ShaderVariables[7].values
         baseColor = (colorVariable[0], colorVariable[1], colorVariable[2], 1)
         alphaVariable = Entry.LoadedData.ShaderVariables[1].values[0]
         PrettyPrint(f"Base color: {baseColor} Alpha: {alphaVariable}")
-        for node in group.node_tree.nodes:
+        for node in node_tree.nodes:
             if node.type == 'BSDF_PRINCIPLED':
                 node.inputs['Base Color'].default_value = baseColor
                 node.inputs['Alpha'].default_value = alphaVariable
-
-    PrettyPrint(f"Found {len(filepaths)} Images: {filepaths}")
-    return filepaths
 
 #endregion
 

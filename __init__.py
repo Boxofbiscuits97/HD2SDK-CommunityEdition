@@ -162,16 +162,17 @@ TextureTypeLookup = {
         "Emission", 
         "Base Color/Metallic"
     ),
-        "armorlut": (
-        "Decal", 
+    "armorlut": (
+        "Cammo Array", 
         "", 
         "Pattern LUT", 
         "Normal", 
         "", 
         "", 
-        "Pattern Mask", 
+        "Pattern Mask Array", 
         "ID Mask Array", 
         "", 
+        "Decal",
         "Primary LUT", 
         "",
     ),
@@ -192,7 +193,7 @@ TextureTypeLookup = {
         "Normal/AO/Roughness",
         "Metallic",
         "",
-        "Color/Emission Mask",
+        "Base Color/Emission Mask",
         "",
         "",
         "",
@@ -201,20 +202,28 @@ TextureTypeLookup = {
     ),
     "translucent": (
         "Normal",
+    ),
+    "scope": (
+        "Metallic/Roughness/AO",
+        "Lens Cutout Texture",
+        "Base Color",
+        "Normal",
     )
 }
 
 Global_Materials = (
-        ("advanced", "Advanced", "A more comlpicated material, that is color, normal, emission and PBR capable which renders in the UI. Sourced from the Illuminate Overseer."),
+        ("advanced", "Advanced", "A more comlpicated material, that is color, normal, emission and PBR capable which renders in the UI. Sourced from the Illuminate Overseer"),
         ("basic+", "Basic+", "A basic material with a color, normal, and PBR map which renders in the UI, Sourced from a SEAF NPC"),
-        ("translucent", "Translucent", "A translucent with a solid set color and normal map. Sourced from the Terminid Larva Backpack."),
-        ("alphaclip+", "Alpha Clip+", "A material that supports an alpha mask which does not render in the UI. Extra features with emission. Sourced from a bot bio processor."),
+        ("translucent", "Translucent", "A translucent with a solid set color and normal map. Sourced from the Terminid Larva Backpack"),
+        ("alphaclip+", "Alpha Clip+", "A material that supports an alpha mask which does not render in the UI. Extra features with emission. Sourced from a bot bio processor"),
         ("alphaclip", "Alpha Clip", "A material that supports an alpha mask which does not render in the UI. Sourced from a skeleton pile"),
         ("original", "Original", "The original template used for all mods uploaded to Nexus prior to the addon's public release, which is bloated with additional unnecessary textures. Sourced from a terminid"),
         ("basic", "Basic", "A basic material with a color, normal, and PBR map. Sourced from a trash bag prop"),
         ("emissive", "Emissive", "A basic material with a color, normal, and emission map. Sourced from a vending machine"),
-        ("armorlut", "Armor LUT", "An advanced material using multiple mask textures and LUTs to texture the mesh only advanced users should be using this. Sourced from the base game material on Armors"),
+        ("armorlut", "Armor LUT", "An advanced material using multiple mask textures and LUTs to texture the mesh only advanced users should be using this. Sourced from the TR-8 shoulderpad"),
+        ("scope", "Scope", "A material used for scopes, with a color, normal, and metallic/roughness/AO map. Sourced from a leftover scope material")
     )
+    
 
 #endregion
 
@@ -1421,6 +1430,7 @@ def CreateAddonMaterial(ID, StingrayMat, mat, Entry):
     elif Entry.MaterialTemplate == "alphaclip+": SetupAlphaClipPlusBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     elif Entry.MaterialTemplate == "advanced": SetupAdvancedBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, TextureNodes, group, mat)
     elif Entry.MaterialTemplate == "translucent": SetupTranslucentBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
+    elif Entry.MaterialTemplate == "scope": SetupScopeBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat)
     
     warning_label = nodeTree.nodes.new('NodeFrame')
     warning_label.label = "BLENDER PREVIEW ONLY - ANY CHANGES WILL NOT AFFECT YOUR MOD!"
@@ -1509,7 +1519,7 @@ def SetupAdvancedBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separate
     nodeTree.links.new(separateColorNormal.outputs['Green'], combineColorNormal.inputs['Green'])
     nodeTree.links.new(normalMap.outputs['Normal'], bsdf.inputs['Normal'])
     nodeTree.links.new(combineColorNormal.outputs['Color'], normalMap.inputs['Color'])
-    nodeTree.links.new(inputNode.outputs['Color/Emission Mask'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Base Color/Emission Mask'], bsdf.inputs['Base Color'])
     nodeTree.links.new(inputNode.outputs['Metallic'], bsdf.inputs['Metallic'])
 
     RoughnessSocket = nodeTree.interface.new_socket(name="Normal/AO/Roughness (Alpha)", in_out ="INPUT", socket_type="NodeSocketFloat").hide_value = True
@@ -1520,9 +1530,9 @@ def SetupAdvancedBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separate
     multiplyEmission.location = (-350, -350)
     multiplyEmission.operation = 'MULTIPLY'
     multiplyEmission.inputs[1].default_value = 0
-    nodeTree.interface.new_socket(name="Color/Emission Mask (Alpha)", in_out ="INPUT", socket_type="NodeSocketFloat").hide_value = True
-    mat.node_tree.links.new(TextureNodes[5].outputs['Alpha'], group.inputs['Color/Emission Mask (Alpha)'])
-    nodeTree.links.new(inputNode.outputs['Color/Emission Mask (Alpha)'], multiplyEmission.inputs[0])
+    nodeTree.interface.new_socket(name="Base Color/Emission Mask (Alpha)", in_out ="INPUT", socket_type="NodeSocketFloat").hide_value = True
+    mat.node_tree.links.new(TextureNodes[5].outputs['Alpha'], group.inputs['Base Color/Emission Mask (Alpha)'])
+    nodeTree.links.new(inputNode.outputs['Base Color/Emission Mask (Alpha)'], multiplyEmission.inputs[0])
     nodeTree.links.new(multiplyEmission.outputs['Value'], bsdf.inputs['Emission Strength'])
     
     nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
@@ -1536,6 +1546,16 @@ def SetupTranslucentBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separ
     mat.blend_method = 'BLEND'
     bsdf.inputs['Alpha'].default_value = 0.02
     bsdf.inputs['Base Color'].default_value = (1, 1, 1, 1)
+
+def SetupScopeBlenderMaterial(nodeTree, inputNode, outputNode, bsdf, separateColor, normalMap, mat):
+    bsdf.inputs['Emission Strength'].default_value = 0
+    inputNode.location = (-750, 0)
+    SetupNormalMapTemplate(nodeTree, inputNode, normalMap, bsdf)
+    nodeTree.links.new(inputNode.outputs['Base Color'], bsdf.inputs['Base Color'])
+    nodeTree.links.new(inputNode.outputs['Metallic/Roughness/AO'], separateColor.inputs['Color'])
+    nodeTree.links.new(separateColor.outputs['Red'], bsdf.inputs['Metallic'])
+    nodeTree.links.new(separateColor.outputs['Green'], bsdf.inputs['Roughness'])
+    nodeTree.links.new(bsdf.outputs['BSDF'], outputNode.inputs['Surface'])
 
 def CreateGenericMaterial(ID, StingrayMat, mat):
     idx = 0
@@ -1586,7 +1606,7 @@ def GenerateMaterialTextures(Entry):
                 filepaths.append(path)
 
                 # enforce proper colorspace for abnormal stingray textures
-                if "Normal" in input_socket.name or "Color/Emission Mask" in input_socket.name:
+                if "Normal" in input_socket.name or "Base Color/Emission Mask" in input_socket.name:
                      image.colorspace_settings.name = 'Non-Color'
     
     # display proper emissives on advanced material

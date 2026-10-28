@@ -2033,14 +2033,15 @@ class ChangeFilepathOperator(Operator, ImportHelper):
         global Global_gamepath
         global Global_gamepathIsValid
         filepath = self.filepath
-        steamapps = "steamapps"
-        steamapps_capitalized = "SteamApps"
-        if steamapps in filepath:
-            filepath = f"{filepath.partition(steamapps)[0]}steamapps/common/Helldivers 2/data/"
-        elif steamapps_capitalized in filepath:
-            filepath = f"{filepath.partition(steamapps_capitalized)[0]}SteamApps/common/Helldivers 2/data/"
-        else:
-            self.report({'ERROR'}, f"Could not find steamapps folder in filepath: {filepath}")
+        if not os.path.isdir(filepath):
+            self.report({'ERROR'}, f"Selected Directory is Invalid: {filepath}")
+            return{'CANCELLED'}
+        if "data" not in filepath:
+            self.report({'ERROR'}, f"Selected Directory is Invalid: {filepath}. Please select the 'data' folder within the Helldivers 2 directory.")
+            return{'CANCELLED'}
+        settings_path = os.path.join(filepath, "settings.ini")
+        if not os.path.exists(settings_path):
+            self.report({'ERROR'}, f"Selected Directory is Invalid: {filepath}. The 'settings.ini' file was not found within the Helldivers 2 directory.")
             return{'CANCELLED'}
         Global_gamepath = filepath.replace('\\', '/')
         Global_gamepathIsValid = True

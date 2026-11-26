@@ -394,10 +394,9 @@ def GetIDFromTypeName(Name):
     return None
 
 def GetFriendlyNameFromID(ID):
-    for hash_info in Global_NameHashes:
-        if int(ID) == hash_info[0]:
-            if hash_info[1] != "":
-                return hash_info[1]
+    name = Global_NameHashes.get(int(ID), "")
+    if name != "":
+        return name
     return str(ID)
 
 def GetArchiveNameFromID(EntryID):
@@ -413,26 +412,22 @@ def GetArchiveIDFromName(Name):
     return ""
 
 def HasFriendlyName(ID):
-    for hash_info in Global_NameHashes:
-        if int(ID) == hash_info[0]:
-            return True
-    return False
+    return int(ID) in Global_NameHashes
 
 def AddFriendlyName(ID, Name):
     Global_TocManager.SavedFriendlyNames = []
     Global_TocManager.SavedFriendlyNameIDs = []
-    for hash_info in Global_NameHashes:
-        if int(ID) == hash_info[0]:
-            hash_info[1] = str(Name)
-            return
-    Global_NameHashes.append([int(ID), str(Name)])
+    if int(ID) in Global_NameHashes:
+        Global_NameHashes[int(ID)] = str(Name)
+        return
+    Global_NameHashes[int(ID)] = str(Name)
     SaveFriendlyNames()
 
 def SaveFriendlyNames():
     with open(Global_friendlynamespath, 'w') as f:
-        for hash_info in Global_NameHashes:
-            if hash_info[1] != "":
-                string = str(hash_info[0]) + " " + str(hash_info[1])
+        for ID, Name in Global_NameHashes.items():
+            if Name != "":
+                string = str(ID) + " " + str(Name)
                 f.writelines(string+"\n")
 
 #endregion
@@ -446,15 +441,13 @@ def LoadTypeHashes():
             parts = line.split(" ")
             Global_TypeHashes.append([int(parts[0], 16), parts[1].replace("\n", "")])
 
-Global_NameHashes = []
+Global_NameHashes = {} # file ID -> friendly name
 def LoadNameHashes():
-    Loaded = []
     with open(Global_friendlynamespath, 'r') as f:
         for line in f.readlines():
             parts = line.split(" ", 1)
-            if int(parts[0]) not in Loaded:
-                Global_NameHashes.append([int(parts[0]), parts[1].replace("\n", "")])
-                Loaded.append(int(parts[0]))
+            if int(parts[0]) not in Global_NameHashes:
+                Global_NameHashes[int(parts[0])] = parts[1].replace("\n", "")
 
 Global_ArchiveHashes = []
 def LoadHash(path, title):

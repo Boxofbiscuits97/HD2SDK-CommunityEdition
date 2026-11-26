@@ -113,6 +113,9 @@
         "1a204afc2362648b": "SR-18 Roadblock",
         "082f22454170efd6": "SR-24 Street Scout",
         "b186eae3f2b61509": "SR-64 Cinderblock",
+        "3953b30dc9ae1114": "SS-15 Focal Point",
+        "3ab4af712c5ec0df": "SS-33 Mimetic Marshal",
+        "97b5edb328db59b5": "SS-500 Pale Prosecutor",
         "1434ec7cf0edf1bc": "TG-8 Sharpshooter",
         "bbbb8499544b83ef": "TG-122 Demo-Trooper",
         "7dc940635e3dd573": "TR-7 Ambassador of the Brand",
@@ -235,6 +238,9 @@
         "c7b0eaff041030c2": "SR-18 Roadblock",
         "b68f33f2cdd058da": "SR-24 Street Scout",
         "84fd7aab7cf6f62d": "SR-64 Cinderblock",
+        "5eb938fd7f03bcd8": "SS-15 Focal Point",
+        "2600aebfd2e3ebc0": "SS-33 Mimetic Marshal",
+        "f6e9a778084c023a": "SS-500 Pale Prosecutor",
         "bf06d78a228c3904": "TG-8 Sharpshooter",
         "8517a93d6e19a56e": "TG-122 Demo-Trooper",
         "a0ce7d80e81fc62e": "TR-7 Ambassador of the Brand",
@@ -318,8 +324,8 @@
         "acb713baebf37d9c":	"Triangulation Veil",
         "e60cceadd539b1d2":	"Pillar of the Abyss",
         "7d2167bff3ebc3d5":	"Veridical Ideology",
-        "61f85b8c1bf97b03": "Foe Rent Asunder",
-        "fd679c4070acb043": "Mark of the Constrictor",
+        "61f85b8c1bf97b03": "Mark of the Constrictor",
+        "fd679c4070acb043": "Foe Rent Asunder",
         "8ca53afa7fb23710": "De-Forester's Sailcloth",
         "25839eed0400603b": "Against the Tyrant Cloud",
         "a751b4cd139b0eb3": "Reckoning's Cheer",
@@ -342,7 +348,10 @@
 		"99db4af09ae521bf": "Wedgeful Tricorn",
 		"83b33ab726e039d5": "Standard of Rapid Evacuation",
 		"c4094551db0870ee": "Shroud of the Juggernaut",
-		"57fd78ec1eb92f4f": "Tread of Liberty"
+		"57fd78ec1eb92f4f": "Tread of Liberty",
+        "59741a3fec22cb1b": "Mimetic Mesh",
+        "8f421f355825dea2": "Boundary Banker",
+        "02eac34262d9b396": "Arctic Decree"
     },
 
     "Icons": { 
@@ -551,6 +560,7 @@
         "bd90b4fccb70622c": "G-3 Smoke",
         "25a04f6d9707d2cc": "G-4 Gas",
 		"b3983aa88d96fa0a": "G-8 Immolation",
+        "9b0e4447df81f72e": "G-11 Caltrops",
         "b2d139f78a2e2120": "G-13 Incendiary Impact",
         "21e90918df69eff7": "G-16 Impact",
         "543ff1ff0bd82b44": "G-23 Stun",
@@ -593,6 +603,7 @@
     "Marksman Rifle": {
         "e829d44fb5653ec4": "R-2 Amendment",
         "03b4b7a46856ccb2": "R-6 Deadeye",
+        "ff0ada8dd2ee32cc": "R-40 Sightliner",
         "2404fa21fe49c32d": "R-63 Diligence & R-63CS Diligence Counter Sniper & R-4 Hyena",
         "9974f498c67d5e20": "R-72 Censor",
         "68aa9a343aa4333c": "R-2124 Constitution"
@@ -634,6 +645,7 @@
         "f79b65e482594bef": "LAS-13 Trident",
         "6db0c562c2bc10b3": "LAS-16 Sickle",
         "7f927f50fa6c50e8": "LAS-17 Double-Edge Sickle",
+        "601d726de9c3962f": "LAS-44 Nova",
         "c51f160470b34ae3": "PLAS-1 Scorcher & PLAS-101 Purifier",
         "351506bb55187cf9": "PLAS-39 Accelerator",
         "0cbb8fc14f7d3433": "R/40-K Hot-Shot Marksman Rifle",
@@ -654,6 +666,7 @@
         "64c37a90c0d906de": "P-33 Missile Pistol",
 		"f3174ef31b118a55": "P-34 Breacher",
         "1b006880ac88d1cd": "P-35 Re-Educator",
+        "7160179c08dd7d81": "P-44 Mist",
         "41ce78fe8f96bebe": "P-72 Crisper",
         "9effc1c882578baf": "PLAS-15 Loyalist",
         "2350348a9acf49c4": "SG-22 Bushwhacker"
@@ -682,8 +695,9 @@
 
     "Support Weapon": {
         "6ad7cc21015a5f85": "AC-8 Autocannon",
-        "2a9fb8f5d0576eae": "ARC-3 Arc Thrower",
+        "a193a00ce4bbd529": "AMW-20 Apex",
         "ea6967f8565a2d76": "APW-1 Anti-Materiel Rifle",
+        "2a9fb8f5d0576eae": "ARC-3 Arc Thrower",
         "df16f5c644edc2b1": "B/FLAM-80 Cremator",
         "c40e3b3fa79052ec": "CQC-1 One True Flag",
         "eeebc5fd26fe0f40": "CQC-9 Defoliation Tool",
@@ -765,7 +779,8 @@
         "fe0fbe8486d53767": "Pistol Reflex Sight",
         "2d821486db99d8cb": "PLAS-39 Accelerator Scope",
         "4307bf2d275eec1d": "Reflex Sight",
-        "6657e3ccf2960f28": "Reflex Sight MK.2"
+        "6657e3ccf2960f28": "Reflex Sight MK.2",
+        "a193a00ce4bbd529": "AMW-20 Apex Scope"
     },
 
     "Attachment": {
@@ -810,6 +825,7 @@
 
     "Backpack": {
         "28812689506a3e9c":	"AC-8 Autocannon Pack",
+        "6f09a6ce25c8ca77":	"AMW-20 Apex Backpack",
         "519980a75ebd50ad":	"B-1 Supply Pack",
         "346d785d6ca13ff4":	"B-100 Portable Hellbomb",
         "bba76437a1c00c1e": "B/MD C4 Pack",
